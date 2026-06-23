@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "pasos": 8,
+  "articulosReglamento": [27, 32, 34, 35, 36, 44],
+  "requerimientos": {
+    "diagrama_er": true,
+    "gestor_bd_version": true,
+    "controles_seguridad": true
+  }
+}

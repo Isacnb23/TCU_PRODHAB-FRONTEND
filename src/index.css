@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variables PRODHAB */
+:root {
+  --primary: #4472C4;
+  --secondary: #70AD47;
+  --danger: #C55A11;
+  --success: #00B050;
+  --warning: #FFC000;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
