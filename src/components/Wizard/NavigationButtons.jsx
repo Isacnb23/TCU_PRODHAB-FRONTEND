@@ -1,19 +1,18 @@
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, AlertTriangle } from 'lucide-react';
 
 /**
- * NavigationButtons.jsx - Botones de navegación del wizard
- * 
+ * NavigationButtons.jsx - Barra de navegación del wizard (sticky abajo)
+ *
  * Responsabilidades:
- * - Botón "Atrás" (si no es primer paso)
+ * - Botón "Anterior" (si no es primer paso)
  * - Botón "Siguiente" (si no es último paso)
- * - Botón "Descargar Excel" (si es último paso)
- * - Validación antes de permitir avanzar
+ * - Botón "Generar Protocolo" (si es último paso)
+ * - Mensaje de validación cuando el paso no está completo
  */
 
 export default function NavigationButtons({
   currentStep,
-  totalSteps = 8,
+  totalSteps = 9,
   onNext,
   onPrev,
   isValid = true,
@@ -23,97 +22,92 @@ export default function NavigationButtons({
   const isLastStep = currentStep === totalSteps;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 }}
-      className="flex items-center justify-between gap-4 mt-8 pt-8 border-t border-gray-200"
-    >
-      {/* Botón Atrás */}
-      {!isFirstStep && (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onPrev}
-          disabled={isLoading}
-          className="
-            flex items-center gap-2 px-6 py-3 rounded-lg
-            bg-gray-200 text-gray-800 font-medium
-            hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all duration-200
-          "
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Atrás
-        </motion.button>
-      )}
+    <div className="sticky bottom-0 max-w-4xl mx-auto mt-4 bg-white border border-gray-100 rounded-2xl shadow-sm px-8 py-4">
+      <div className="flex items-center justify-between gap-4">
+        {/* Botón Anterior (o espaciador para mantener el primario a la derecha) */}
+        {!isFirstStep ? (
+          <button
+            onClick={onPrev}
+            disabled={isLoading}
+            className="
+              flex items-center gap-2 px-8 py-3 rounded-xl font-semibold
+              border-2 border-[#1B2A4A]/20 text-[#1B2A4A] bg-white
+              hover:border-[#1B2A4A] hover:bg-[#1B2A4A]/5
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-all duration-200
+            "
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Anterior
+          </button>
+        ) : (
+          <span />
+        )}
 
-      {/* Espaciador */}
-      <div className="flex-1" />
-
-      {/* Botón Siguiente o Descargar */}
-      {!isLastStep ? (
-        <motion.button
-          whileHover={isValid ? { scale: 1.05 } : {}}
-          whileTap={isValid ? { scale: 0.95 } : {}}
-          onClick={onNext}
-          disabled={!isValid || isLoading}
-          className="
-            flex items-center gap-2 px-6 py-3 rounded-lg
-            bg-blue-600 text-white font-medium
-            hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed
-            transition-all duration-200
-          "
-        >
-          {isLoading ? (
-            <>
-              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-              Procesando...
-            </>
-          ) : (
-            <>
-              Siguiente
-              <ChevronRight className="w-5 h-5" />
-            </>
+        {/* Mensaje de validación + botón primario */}
+        <div className="flex items-center gap-3">
+          {!isValid && !isLastStep && !isLoading && (
+            <span className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-2">
+              <AlertTriangle size={16} />
+              Completa los campos obligatorios
+            </span>
           )}
-        </motion.button>
-      ) : (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onNext}
-          disabled={isLoading}
-          className="
-            flex items-center gap-2 px-6 py-3 rounded-lg
-            bg-green-600 text-white font-medium
-            hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed
-            transition-all duration-200
-          "
-        >
-          {isLoading ? (
-            <>
-              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-              Generando...
-            </>
-          ) : (
-            <>
-              <Download className="w-5 h-5" />
-              Descargar Excel
-            </>
-          )}
-        </motion.button>
-      )}
 
-      {/* Información */}
-      {!isValid && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-sm text-red-600 font-medium ml-4"
-        >
-          ⚠️ Completa los campos obligatorios
-        </motion.div>
-      )}
-    </motion.div>
+          {!isLastStep ? (
+            <button
+              onClick={onNext}
+              disabled={!isValid || isLoading}
+              className="
+                flex items-center gap-2 px-8 py-3 rounded-xl font-semibold
+                bg-[#1B2A4A] hover:bg-[#243761] text-white
+                shadow-lg shadow-[#1B2A4A]/20
+                hover:shadow-xl hover:shadow-[#1B2A4A]/30 hover:-translate-y-0.5
+                disabled:opacity-50 disabled:cursor-not-allowed
+                disabled:hover:translate-y-0 disabled:hover:shadow-lg
+                transition-all duration-200
+              "
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  Siguiente
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={onNext}
+              disabled={isLoading}
+              className="
+                flex items-center gap-2 px-8 py-3 rounded-xl font-semibold
+                bg-[#1B2A4A] hover:bg-[#243761] text-white
+                shadow-lg shadow-[#1B2A4A]/20
+                hover:shadow-xl hover:shadow-[#1B2A4A]/30 hover:-translate-y-0.5
+                disabled:opacity-50 disabled:cursor-not-allowed
+                disabled:hover:translate-y-0 disabled:hover:shadow-lg
+                transition-all duration-200
+              "
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-5 h-5" />
+                  Generar Protocolo
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -4,6 +4,10 @@ import InputField from '../Common/InputField';
 import Dropdown from '../Common/Dropdown';
 import FileUpload from '../Common/FileUpload';
 import Tooltip from '../Common/Tooltip';
+import InfoBanner from '../Common/InfoBanner';
+import StepSummary from '../Common/StepSummary';
+import OptionalSection from '../Common/OptionalSection';
+import { Building2 } from 'lucide-react';
 
 /**
  * Step1_General.jsx - Paso 1: Información General
@@ -31,6 +35,33 @@ const GESTORES_BD = [
   'Otro',
 ];
 
+/**
+ * Versiones sugeridas por gestor de BD.
+ * La opción "Otra..." habilita un campo de texto libre.
+ */
+const VERSIONES_BD = {
+  MySQL: ['9.1.0', '9.0.1', '8.4.3', '8.0.40', '5.7.44', 'Otra...'],
+  PostgreSQL: ['17.2', '16.6', '15.10', '14.15', '13.18', 'Otra...'],
+  'SQL Server': [
+    'SQL Server 2022 (16.0)',
+    'SQL Server 2019 (15.0)',
+    'SQL Server 2017 (14.0)',
+    'SQL Server 2016 (13.0)',
+    'Otra...',
+  ],
+  Oracle: [
+    'Oracle 23c (23.0)',
+    'Oracle 21c (21.0)',
+    'Oracle 19c (19.0)',
+    'Oracle 12c (12.2)',
+    'Otra...',
+  ],
+  MongoDB: ['8.0', '7.0', '6.0', '5.0', 'Otra...'],
+  MariaDB: ['11.6', '11.4', '10.11', '10.6', 'Otra...'],
+  SQLite: ['3.47', '3.45', '3.43', '3.40', 'Otra...'],
+  Otro: ['Otra...'],
+};
+
 export default function Step1_General({ data = {}, onChange }) {
   const [formData, setFormData] = useState({
     entidad: data.entidad || '',
@@ -41,16 +72,42 @@ export default function Step1_General({ data = {}, onChange }) {
     ano: data.ano || new Date().getFullYear(),
     responsable: data.responsable || '',
     contacto: data.contacto || '',
+    // Campos opcionales (sheet GENERAL del Excel)
+    area: data.area || '',
+    cantidadLicencias: data.cantidadLicencias || '',
+    cantidadUsuarios: data.cantidadUsuarios || '',
+    alojamiento: data.alojamiento || '',
+    acceso: data.acceso || '',
+    mecanismoDerechos: data.mecanismoDerechos || '',
+    fechaCreacion: data.fechaCreacion || '',
   });
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
+  // Selección del dropdown de versión (dependiente del gestor).
+  // Vale "Otra..." cuando el usuario escribe una versión personalizada.
+  const [versionSelect, setVersionSelect] = useState(() => {
+    if (!data.versionBD) return '';
+    const opts = VERSIONES_BD[data.gestorBD] || [];
+    return opts.includes(data.versionBD) ? data.versionBD : 'Otra...';
+  });
+
   /**
    * Sincroniza cambios con el componente padre
    */
   useEffect(() => {
-    onChange(formData);
+    const isValid = !!(
+      formData.entidad?.trim().length >= 3 &&
+      formData.nombreBD?.trim().length >= 2 &&
+      formData.gestorBD &&
+      formData.versionBD?.trim() &&
+      /\d+\.\d+/.test(formData.versionBD) &&
+      formData.responsable?.trim().length >= 3 &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contacto) &&
+      formData.diagramaER
+    );
+    onChange(formData, isValid);
   }, [formData]);
 
   /**
@@ -150,6 +207,27 @@ export default function Step1_General({ data = {}, onChange }) {
   };
 
   /**
+   * Cambia el gestor de BD y resetea la versión seleccionada.
+   */
+  const handleGestorChange = (value) => {
+    setFormData((prev) => ({ ...prev, gestorBD: value, versionBD: '' }));
+    setVersionSelect('');
+    validateField('gestorBD', value);
+    validateField('versionBD', '');
+  };
+
+  /**
+   * Maneja la selección de versión desde el dropdown dependiente.
+   * Si elige "Otra..." se limpia el valor para que lo escriba a mano.
+   */
+  const handleVersionSelect = (value) => {
+    setVersionSelect(value);
+    const nuevaVersion = value === 'Otra...' ? '' : value;
+    setFormData((prev) => ({ ...prev, versionBD: nuevaVersion }));
+    validateField('versionBD', nuevaVersion);
+  };
+
+  /**
    * Maneja upload de archivo (diagrama ER)
    */
   const handleFileUpload = (file) => {
@@ -192,13 +270,11 @@ export default function Step1_General({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción del paso */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          📋 <strong>Paso 1: Información General</strong>
-          <br />
-          Completa los datos básicos de tu base de datos y entidad.
-        </p>
-      </div>
+      <InfoBanner
+        Icon={Building2}
+        title="Paso 1: Información General"
+        description="Completa los datos básicos de tu base de datos y entidad."
+      />
 
       {/* Grid de campos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -220,7 +296,7 @@ export default function Step1_General({ data = {}, onChange }) {
               ${
                 errors.entidad && touched.entidad
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  : 'border-gray-300 focus:ring-primary-500'
               }
               focus:ring-2 focus:outline-none
             `}
@@ -241,7 +317,7 @@ export default function Step1_General({ data = {}, onChange }) {
             name="ano"
             value={formData.ano}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
           />
         </div>
 
@@ -263,7 +339,7 @@ export default function Step1_General({ data = {}, onChange }) {
               ${
                 errors.nombreBD && touched.nombreBD
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  : 'border-gray-300 focus:ring-primary-500'
               }
               focus:ring-2 focus:outline-none
             `}
@@ -291,7 +367,7 @@ export default function Step1_General({ data = {}, onChange }) {
               ${
                 errors.responsable && touched.responsable
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  : 'border-gray-300 focus:ring-primary-500'
               }
               focus:ring-2 focus:outline-none
             `}
@@ -309,16 +385,14 @@ export default function Step1_General({ data = {}, onChange }) {
           </label>
           <select
             value={formData.gestorBD}
-            onChange={(e) =>
-              handleDropdownChange('gestorBD', e.target.value)
-            }
+            onChange={(e) => handleGestorChange(e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, gestorBD: true }))}
             className={`
               w-full px-4 py-2 rounded-lg border transition-all
               ${
                 errors.gestorBD && touched.gestorBD
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  : 'border-gray-300 focus:ring-primary-500'
               }
               focus:ring-2 focus:outline-none
             `}
@@ -335,29 +409,61 @@ export default function Step1_General({ data = {}, onChange }) {
           )}
         </div>
 
-        {/* Versión BD */}
+        {/* Versión BD (dropdown dependiente del gestor) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Versión del Gestor <span className="text-red-500">*</span>
-            <Tooltip text="Versión completa. Ej: SQL Server 2019 (15.0.2000.5) o MySQL 8.0.32" />
+            <Tooltip text="Selecciona la versión según el gestor elegido. Usa 'Otra...' para escribir una versión no listada." />
           </label>
-          <input
-            type="text"
-            name="versionBD"
-            value={formData.versionBD}
-            onChange={handleInputChange}
+          <select
+            value={versionSelect}
+            onChange={(e) => handleVersionSelect(e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, versionBD: true }))}
-            placeholder="Ej: SQL Server 2019 (15.0.2000.5)"
+            disabled={!formData.gestorBD}
             className={`
               w-full px-4 py-2 rounded-lg border transition-all
               ${
                 errors.versionBD && touched.versionBD
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  : 'border-gray-300 focus:ring-primary-500'
               }
               focus:ring-2 focus:outline-none
+              disabled:bg-gray-100 disabled:cursor-not-allowed
             `}
-          />
+          >
+            <option value="">
+              {formData.gestorBD
+                ? '-- Selecciona versión --'
+                : '-- Primero elige el gestor --'}
+            </option>
+            {(VERSIONES_BD[formData.gestorBD] || []).map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
+
+          {/* Campo de texto libre cuando el usuario elige "Otra..." */}
+          {versionSelect === 'Otra...' && (
+            <input
+              type="text"
+              name="versionBD"
+              value={formData.versionBD}
+              onChange={handleInputChange}
+              onBlur={() => setTouched((prev) => ({ ...prev, versionBD: true }))}
+              placeholder="Especifica la versión..."
+              className={`
+                mt-2 w-full px-4 py-2 rounded-lg border transition-all
+                ${
+                  errors.versionBD && touched.versionBD
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-primary-500'
+                }
+                focus:ring-2 focus:outline-none
+              `}
+            />
+          )}
+
           {errors.versionBD && touched.versionBD && (
             <p className="text-red-500 text-sm mt-1">⚠️ {errors.versionBD}</p>
           )}
@@ -381,7 +487,7 @@ export default function Step1_General({ data = {}, onChange }) {
               ${
                 errors.contacto && touched.contacto
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-blue-500'
+                  : 'border-gray-300 focus:ring-primary-500'
               }
               focus:ring-2 focus:outline-none
             `}
@@ -391,6 +497,127 @@ export default function Step1_General({ data = {}, onChange }) {
           )}
         </div>
       </div>
+
+      {/* Sección opcional */}
+      <OptionalSection>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Área */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Área
+              <Tooltip text="Área o departamento responsable de la base de datos" />
+            </label>
+            <input
+              type="text"
+              name="area"
+              value={formData.area}
+              onChange={handleInputChange}
+              placeholder="Ej: TI, Recursos Humanos"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Fecha de creación */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Fecha de creación de la BD
+              <Tooltip text="Fecha en que se creó o comenzó a operar la base de datos" />
+            </label>
+            <input
+              type="date"
+              name="fechaCreacion"
+              value={formData.fechaCreacion}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Cantidad de licencias */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cantidad de licencias
+              <Tooltip text="Número de licencias del gestor de BD" />
+            </label>
+            <input
+              type="number"
+              name="cantidadLicencias"
+              value={formData.cantidadLicencias}
+              onChange={handleInputChange}
+              min="0"
+              placeholder="Ej: 5"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Cantidad de usuarios */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cantidad de usuarios
+              <Tooltip text="Número de usuarios con acceso a la base de datos" />
+            </label>
+            <input
+              type="number"
+              name="cantidadUsuarios"
+              value={formData.cantidadUsuarios}
+              onChange={handleInputChange}
+              min="0"
+              placeholder="Ej: 20"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Alojamiento */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Alojamiento
+              <Tooltip text="Dónde está alojada físicamente la base de datos" />
+            </label>
+            <select
+              name="alojamiento"
+              value={formData.alojamiento}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            >
+              <option value="">-- Selecciona --</option>
+              <option value="local">Local</option>
+              <option value="nube">Nube</option>
+              <option value="hibrido">Híbrido</option>
+            </select>
+          </div>
+
+          {/* Acceso / Derechos */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Acceso / Derechos de acceso
+              <Tooltip text="Describe quiénes tienen acceso y qué tipo de permisos" />
+            </label>
+            <input
+              type="text"
+              name="acceso"
+              value={formData.acceso}
+              onChange={handleInputChange}
+              placeholder="Ej: Solo personal autorizado de TI"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Mecanismo para ejercicio de derechos */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mecanismo para ejercicio de derechos
+              <Tooltip text="Cómo pueden los titulares ejercer sus derechos ARCO (Acceso, Rectificación, Cancelación, Oposición)" />
+            </label>
+            <input
+              type="text"
+              name="mecanismoDerechos"
+              value={formData.mecanismoDerechos}
+              onChange={handleInputChange}
+              placeholder="Ej: Formulario en línea / Solicitud escrita al responsable"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+        </div>
+      </OptionalSection>
 
       {/* Diagrama ER (ancho completo) */}
       <div>
@@ -410,25 +637,16 @@ export default function Step1_General({ data = {}, onChange }) {
       </div>
 
       {/* Resumen */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p className="text-xs font-semibold text-gray-600 mb-2">
-          📋 RESUMEN DEL PASO
-        </p>
-        <ul className="text-xs text-gray-600 space-y-1">
-          <li>✓ Entidad: {formData.entidad || 'No ingresada'}</li>
-          <li>✓ Base de Datos: {formData.nombreBD || 'No ingresada'}</li>
-          <li>
-            ✓ Gestor BD: {formData.gestorBD || 'No seleccionado'} v
-            {formData.versionBD || '?'}
-          </li>
-          <li>
-            ✓ Diagrama ER:{' '}
-            {formData.diagramaER
-              ? `${formData.diagramaER.name} ✅`
-              : 'No cargado'}
-          </li>
-        </ul>
-      </div>
+      <StepSummary
+        items={[
+          `Entidad: ${formData.entidad || 'No ingresada'}`,
+          `Base de Datos: ${formData.nombreBD || 'No ingresada'}`,
+          `Gestor BD: ${formData.gestorBD || 'No seleccionado'} v${formData.versionBD || '?'}`,
+          `Diagrama ER: ${
+            formData.diagramaER ? `${formData.diagramaER.name} ✅` : 'No cargado'
+          }`,
+        ]}
+      />
     </motion.div>
   );
 }

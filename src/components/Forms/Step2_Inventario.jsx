@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Database } from 'lucide-react';
+import InfoBanner from '../Common/InfoBanner';
+import StepSummary from '../Common/StepSummary';
 
 /**
  * Step2_Inventario.jsx - Paso 2: Inventario de Bases de Datos
@@ -33,12 +35,53 @@ const TIPOS_BD = [
   'Otro',
 ];
 
+/**
+ * Opciones de ubicación. "Otro..." habilita un campo de texto libre.
+ */
+const UBICACIONES = [
+  'Servidor local',
+  'Nube pública (AWS)',
+  'Nube pública (Azure)',
+  'Nube pública (GCP)',
+  'Nube híbrida',
+  'Railway',
+  'Vercel',
+  'Otro...',
+];
+const UBICACIONES_FIJAS = UBICACIONES.slice(0, -1); // sin "Otro..."
+
 export default function Step2_Inventario({ data = {}, onChange }) {
   const [bases, setBases] = useState(data.bases || []);
   const [errors, setErrors] = useState({});
+  // Filas cuyo campo Ubicación está en modo "Otro..." (texto libre)
+  const [ubicOtro, setUbicOtro] = useState({});
+
+  // ¿La fila usa una ubicación personalizada? (modo "Otro...")
+  const esUbicOtro = (bd) =>
+    !!ubicOtro[bd.id] || (!!bd.ubicacion && !UBICACIONES_FIJAS.includes(bd.ubicacion));
+
+  /**
+   * Maneja el dropdown de ubicación (con opción "Otro..." → texto libre)
+   */
+  const handleUbicacion = (id, valor) => {
+    if (valor === 'Otro...') {
+      setUbicOtro((prev) => ({ ...prev, [id]: true }));
+      actualizarBD(id, 'ubicacion', '');
+    } else {
+      setUbicOtro((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      actualizarBD(id, 'ubicacion', valor);
+    }
+  };
 
   useEffect(() => {
-    onChange({ bases });
+    const isValid =
+      bases.length > 0 &&
+      bases.every((bd) => bd.nombre.trim() && bd.gestor && bd.tipo);
+    onChange({ bases }, isValid);
   }, [bases]);
 
   /**
@@ -93,13 +136,11 @@ export default function Step2_Inventario({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          📊 <strong>Paso 2: Inventario de Bases de Datos</strong>
-          <br />
-          Registra todas las bases de datos que contienen datos personales.
-        </p>
-      </div>
+      <InfoBanner
+        Icon={Database}
+        title="Paso 2: Inventario de Bases de Datos"
+        description="Registra todas las bases de datos que contienen datos personales."
+      />
 
       {/* Tabla de inventario */}
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
@@ -163,7 +204,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         errors[`${bd.id}_nombre`]
                           ? 'border-red-500 bg-red-50'
                           : 'border-gray-300'
-                      } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                      } focus:ring-2 focus:ring-primary-500 focus:outline-none`}
                     />
                   </td>
 
@@ -176,7 +217,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         actualizarBD(bd.id, 'descripcion', e.target.value)
                       }
                       placeholder="Datos de pacientes..."
-                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
                   </td>
 
@@ -191,7 +232,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         errors[`${bd.id}_gestor`]
                           ? 'border-red-500 bg-red-50'
                           : 'border-gray-300'
-                      } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                      } focus:ring-2 focus:ring-primary-500 focus:outline-none`}
                     >
                       <option value="">--</option>
                       {GESTORES_BD.map((g) => (
@@ -211,21 +252,35 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         actualizarBD(bd.id, 'version', e.target.value)
                       }
                       placeholder="8.0.32"
-                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
                   </td>
 
-                  {/* Ubicación */}
+                  {/* Ubicación (dropdown con opción "Otro...") */}
                   <td className="px-4 py-3">
-                    <input
-                      type="text"
-                      value={bd.ubicacion}
-                      onChange={(e) =>
-                        actualizarBD(bd.id, 'ubicacion', e.target.value)
-                      }
-                      placeholder="Servidor 1"
-                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
+                    <select
+                      value={esUbicOtro(bd) ? 'Otro...' : bd.ubicacion || ''}
+                      onChange={(e) => handleUbicacion(bd.id, e.target.value)}
+                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                    >
+                      <option value="">--</option>
+                      {UBICACIONES.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
+                    {esUbicOtro(bd) && (
+                      <input
+                        type="text"
+                        value={bd.ubicacion}
+                        onChange={(e) =>
+                          actualizarBD(bd.id, 'ubicacion', e.target.value)
+                        }
+                        placeholder="Especifica la ubicación..."
+                        className="mt-1 w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    )}
                   </td>
 
                   {/* Tipo */}
@@ -239,7 +294,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         errors[`${bd.id}_tipo`]
                           ? 'border-red-500 bg-red-50'
                           : 'border-gray-300'
-                      } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                      } focus:ring-2 focus:ring-primary-500 focus:outline-none`}
                     >
                       <option value="">--</option>
                       {TIPOS_BD.map((t) => (
@@ -274,40 +329,30 @@ export default function Step2_Inventario({ data = {}, onChange }) {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={agregarBD}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+        className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all"
       >
         <Plus className="w-4 h-4" />
         Agregar BD
       </motion.button>
 
       {/* Resumen */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p className="text-xs font-semibold text-gray-600 mb-2">
-          📋 RESUMEN DEL PASO
-        </p>
-        <ul className="text-xs text-gray-600 space-y-1">
-          <li>
-            ✓ Bases de datos registradas:{' '}
-            <strong>{bases.length}</strong>
-          </li>
-          <li>
-            ✓ Completadas:{' '}
+      <StepSummary
+        items={[
+          <>Bases de datos registradas: <strong>{bases.length}</strong></>,
+          <>
+            Completadas:{' '}
             <strong>
-              {bases.filter(
-                (bd) =>
-                  bd.nombre && bd.gestor && bd.tipo
-              ).length}
+              {bases.filter((bd) => bd.nombre && bd.gestor && bd.tipo).length}
             </strong>
-          </li>
-          <li>
-            ✓ Gestores BD únicos:{' '}
+          </>,
+          <>
+            Gestores BD únicos:{' '}
             <strong>
-              {new Set(bases.map((bd) => bd.gestor).filter(Boolean))
-                .size}
+              {new Set(bases.map((bd) => bd.gestor).filter(Boolean)).size}
             </strong>
-          </li>
-        </ul>
-      </div>
+          </>,
+        ]}
+      />
     </motion.div>
   );
 }

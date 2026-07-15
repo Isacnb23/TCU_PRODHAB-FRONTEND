@@ -2,16 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Variables PRODHAB */
+/* Variables de marca PRODHAB (Gobierno de Costa Rica) */
 :root {
-  --primary: #4472C4;
-  --secondary: #70AD47;
-  --danger: #C55A11;
-  --success: #00B050;
-  --warning: #FFC000;
+  --primary: #1B2A4A;      /* Azul marino institucional */
+  --secondary: #C9A84C;    /* Dorado institucional */
+  --bg-app: #F8F9FC;       /* Fondo general de la app */
+  --text-main: #1a1a2e;    /* Texto principal */
+  --text-muted: #6b7280;   /* Texto secundario */
+  --border: #e5e7eb;       /* Bordes */
+  --danger: #C55A11;       /* Naranja (alertas) */
+  --success: #16a34a;      /* Verde (éxito) */
+  --warning: #b45309;      /* Ámbar (advertencias) */
 }
 
 body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

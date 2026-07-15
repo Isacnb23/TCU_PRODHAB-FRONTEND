@@ -9,7 +9,8 @@ import Step4_Finalidad from '../Forms/Step4_Finalidad';
 import Step5_Transferencia from '../Forms/Step5_Transferencia';
 import Step6_Riesgos from '../Forms/Step6_Riesgos';
 import Step7_Seguridad from '../Forms/Step7_Seguridad';
-import Step8_Revision from '../Forms/Step8_Revision';
+import Step8_Adicionales from '../Forms/Step8_Adicionales';
+import Step9_Revision from '../Forms/Step9_Revision';
 
 /**
  * WizardContainer.jsx - Contenedor maestro del wizard
@@ -22,7 +23,7 @@ import Step8_Revision from '../Forms/Step8_Revision';
  * - Guardar progreso automáticamente
  */
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 const STEPS_COMPONENTS = [
   Step1_General,
@@ -32,7 +33,8 @@ const STEPS_COMPONENTS = [
   Step5_Transferencia,
   Step6_Riesgos,
   Step7_Seguridad,
-  Step8_Revision,
+  Step8_Adicionales,
+  Step9_Revision,
 ];
 
 export default function WizardContainer({
@@ -50,20 +52,27 @@ export default function WizardContainer({
     5: false,
     6: false,
     7: false,
-    8: false,
+    8: false, // Step8_Adicionales se auto-valida como true en su useEffect
+    9: true,  // Último paso: botón "Descargar Excel" no depende de isValid
   });
 
   // Obtener componente actual
   const CurrentStepComponent = STEPS_COMPONENTS[currentStep - 1];
 
   /**
-   * Maneja cambios de datos en el paso actual
+   * Maneja cambios de datos en el paso actual.
+   * Cada paso reporta su propia validez (isValid) en su useEffect,
+   * por lo que aquí solo guardamos datos y validez tal cual llegan.
    */
-  const handleStepDataChange = (stepData) => {
+  const handleStepDataChange = (stepData, isValid) => {
     const stepKey = `step${currentStep}_${getStepName(currentStep)}`;
     setFormData((prev) => ({
       ...prev,
       [stepKey]: stepData,
+    }));
+    setStepValidation((prev) => ({
+      ...prev,
+      [currentStep]: !!isValid,
     }));
   };
 
@@ -79,32 +88,16 @@ export default function WizardContainer({
       'transferencia',
       'riesgos',
       'seguridad',
+      'adicionales',
       'revision',
     ];
     return names[step - 1];
   }
 
   /**
-   * Valida el paso actual
-   */
-  const validateCurrentStep = () => {
-    // Validación básica - puede expandirse
-    const stepKey = `step${currentStep}_${getStepName(currentStep)}`;
-    const stepData = formData[stepKey];
-    
-    // Para este ejemplo, consideramos válido si hay algún dato
-    const isValid = stepData && Object.keys(stepData).length > 0;
-    
-    setStepValidation((prev) => ({
-      ...prev,
-      [currentStep]: isValid,
-    }));
-
-    return isValid;
-  };
-
-  /**
-   * Avanza al siguiente paso
+   * Avanza al siguiente paso.
+   * La validez la determina cada paso vía stepValidation[currentStep];
+   * el botón "Siguiente" ya viene deshabilitado si el paso no es válido.
    */
   const handleNext = async () => {
     if (currentStep === TOTAL_STEPS) {
@@ -121,13 +114,8 @@ export default function WizardContainer({
       } finally {
         setIsLoading(false);
       }
-    } else {
-      // Validar antes de avanzar
-      if (validateCurrentStep()) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        alert('⚠️ Por favor completa los campos obligatorios');
-      }
+    } else if (stepValidation[currentStep] === true) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
@@ -153,10 +141,14 @@ export default function WizardContainer({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-lg shadow-sm p-8 mt-6"
+          className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
         >
           <CurrentStepComponent
-            data={formData[`step${currentStep}_${getStepName(currentStep)}`] || {}}
+            data={
+              currentStep === TOTAL_STEPS
+                ? formData
+                : (formData[`step${currentStep}_${getStepName(currentStep)}`] || {})
+            }
             onChange={handleStepDataChange}
           />
         </motion.div>
@@ -168,16 +160,9 @@ export default function WizardContainer({
         totalSteps={TOTAL_STEPS}
         onNext={handleNext}
         onPrev={handlePrev}
-        isValid={stepValidation[currentStep] !== false}
+        isValid={stepValidation[currentStep] === true}
         isLoading={isLoading}
       />
-
-      {/* Información de debug (remover en producción) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-8 p-4 bg-gray-100 rounded text-xs text-gray-600">
-          <p>Debug: Paso {currentStep} | Datos guardados: {Object.keys(formData).length}</p>
-        </div>
-      )}
     </div>
   );
 }

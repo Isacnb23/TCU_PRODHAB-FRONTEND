@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Plus, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, AlertCircle, ArrowLeftRight } from 'lucide-react';
+import InfoBanner from '../Common/InfoBanner';
+import StepSummary from '../Common/StepSummary';
 
 /**
  * Step5_Transferencia.jsx - Paso 5: Transferencias de Datos
@@ -48,7 +50,12 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
   });
 
   useEffect(() => {
-    onChange(formData);
+    // Válido si no hay transferencias, o si las hay y cada una tiene país y tipo
+    const isValid =
+      !formData.realizaTransferencias ||
+      (formData.transferencias.length > 0 &&
+        formData.transferencias.every((t) => t.pais && t.tipo));
+    onChange(formData, isValid);
   }, [formData]);
 
   /**
@@ -109,14 +116,11 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          🔄 <strong>Paso 5: Transferencias Internacionales</strong>
-          <br />
-          Especifica si realizas transferencias de datos personales a otros
-          países.
-        </p>
-      </div>
+      <InfoBanner
+        Icon={ArrowLeftRight}
+        title="Paso 5: Transferencias Internacionales"
+        description="Especifica si realizas transferencias de datos personales a otros países."
+      />
 
       {/* Pregunta inicial */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -187,7 +191,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                 }
                 placeholder="Ej: Transferimos datos a proveedores de servicios en nube para almacenamiento seguro..."
                 rows="3"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
               />
             </div>
 
@@ -246,7 +250,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                                 e.target.value
                               )
                             }
-                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                           >
                             <option value="">--</option>
                             {PAISES.map((p) => (
@@ -268,7 +272,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                                 e.target.value
                               )
                             }
-                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                           >
                             <option value="">--</option>
                             {TIPOS_TRANSFERENCIA.map((t) => (
@@ -292,7 +296,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                               )
                             }
                             placeholder="Breve descripción"
-                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                           />
                         </td>
 
@@ -309,7 +313,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                               )
                             }
                             placeholder="Ej: Ley 8968"
-                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                           />
                         </td>
 
@@ -336,7 +340,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={agregarTransferencia}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               <Plus className="w-4 h-4" />
               Agregar Transferencia
@@ -363,29 +367,24 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
       </AnimatePresence>
 
       {/* Resumen */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p className="text-xs font-semibold text-gray-600 mb-2">
-          📋 RESUMEN DEL PASO
-        </p>
-        <ul className="text-xs text-gray-600 space-y-1">
-          <li>
-            ✓ ¿Realiza transferencias?:{' '}
-            {formData.realizaTransferencias ? '✅ SÍ' : '✅ NO'}
-          </li>
-          {formData.realizaTransferencias && (
-            <>
-              <li>
-                ✓ Transferencias registradas:{' '}
-                <strong>{formData.transferencias.length}</strong>
-              </li>
-              <li>
-                ✓ Justificación general:{' '}
-                {formData.justificacionGeneral ? '✅' : '⏳'}
-              </li>
-            </>
-          )}
-        </ul>
-      </div>
+      <StepSummary
+        items={[
+          `¿Realiza transferencias?: ${
+            formData.realizaTransferencias ? '✅ SÍ' : '✅ NO'
+          }`,
+          ...(formData.realizaTransferencias
+            ? [
+                <>
+                  Transferencias registradas:{' '}
+                  <strong>{formData.transferencias.length}</strong>
+                </>,
+                `Justificación general: ${
+                  formData.justificacionGeneral ? '✅' : '⏳'
+                }`,
+              ]
+            : []),
+        ]}
+      />
     </motion.div>
   );
 }

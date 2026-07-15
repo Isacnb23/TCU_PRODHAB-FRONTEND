@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, Plus, Shield } from 'lucide-react';
+import { Trash2, Plus, Shield, Lock } from 'lucide-react';
+import InfoBanner from '../Common/InfoBanner';
+import StepSummary from '../Common/StepSummary';
 
 /**
  * Step7_Seguridad.jsx - Paso 7: Medidas de Seguridad y Controles
@@ -89,7 +91,10 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
   const [mostrarSugeridos, setMostrarSugeridos] = useState(false);
 
   useEffect(() => {
-    onChange({ controles });
+    const isValid =
+      controles.length > 0 &&
+      controles.every((c) => c.tipo && c.descripcion.trim() && c.estado);
+    onChange({ controles }, isValid);
   }, [controles]);
 
   /**
@@ -161,14 +166,11 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          🔒 <strong>Paso 7: Medidas de Seguridad y Controles</strong>
-          <br />
-          Documenta todas las medidas técnicas, administrativas y físicas que
-          implementas para proteger los datos personales.
-        </p>
-      </div>
+      <InfoBanner
+        Icon={Lock}
+        title="Paso 7: Medidas de Seguridad y Controles"
+        description="Documenta todas las medidas técnicas, administrativas y físicas que implementas para proteger los datos personales."
+      />
 
       {/* Botones de acción */}
       <div className="flex gap-3">
@@ -176,7 +178,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={agregarControl}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
         >
           <Plus className="w-4 h-4" />
           Agregar Control
@@ -279,7 +281,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                           e.target.value
                         )
                       }
-                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     >
                       <option value="">--</option>
                       {TIPOS_CONTROL.map((t) => (
@@ -303,7 +305,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                         )
                       }
                       placeholder="Ej: Encriptación SSL/TLS"
-                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
                   </td>
 
@@ -318,7 +320,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                           e.target.value
                         )
                       }
-                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     >
                       <option value="">--</option>
                       {ESTADOS_CONTROL.map((e) => (
@@ -342,7 +344,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                         )
                       }
                       placeholder="Nombre"
-                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
                   </td>
 
@@ -366,9 +368,9 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
 
       {/* Estadísticas */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className="bg-blue-50 border border-blue-300 rounded-lg p-3 text-center">
-          <p className="text-xl font-bold text-blue-700">{estadisticas.total}</p>
-          <p className="text-xs text-blue-600">Total</p>
+        <div className="bg-primary-50 border border-primary-300 rounded-lg p-3 text-center">
+          <p className="text-xl font-bold text-primary-700">{estadisticas.total}</p>
+          <p className="text-xs text-primary-600">Total</p>
         </div>
         <div className="bg-purple-50 border border-purple-300 rounded-lg p-3 text-center">
           <p className="text-xl font-bold text-purple-700">
@@ -397,16 +399,13 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
       </div>
 
       {/* Resumen */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p className="text-xs font-semibold text-gray-600 mb-2">
-          📋 RESUMEN DEL PASO
-        </p>
-        <ul className="text-xs text-gray-600 space-y-1">
-          <li>✓ Total de controles: <strong>{estadisticas.total}</strong></li>
-          <li>✓ Cobertura: Técnica, Administrativa, Física</li>
-          <li>✓ Implementados: <strong>{estadisticas.implementados}</strong></li>
-        </ul>
-      </div>
+      <StepSummary
+        items={[
+          <>Total de controles: <strong>{estadisticas.total}</strong></>,
+          'Cobertura: Técnica, Administrativa, Física',
+          <>Implementados: <strong>{estadisticas.implementados}</strong></>,
+        ]}
+      />
     </motion.div>
   );
 }

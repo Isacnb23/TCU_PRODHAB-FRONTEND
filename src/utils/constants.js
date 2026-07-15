@@ -141,14 +141,18 @@ export const TIPOS_CONTROL = [
 ];
 
 /**
- * Colores PRODHAB (para después)
+ * Colores oficiales de marca PRODHAB
  */
 export const COLORES_PRODHAB = {
-  primary: '#4472C4',    // Azul
-  secondary: '#70AD47',  // Verde
-  danger: '#C55A11',     // Naranja
-  success: '#00B050',    // Verde claro
-  warning: '#FFC000',    // Amarillo
+  primary: '#1B2A4A',    // Azul marino institucional
+  secondary: '#C9A84C',  // Dorado institucional
+  bgApp: '#F8F9FC',      // Fondo general
+  textMain: '#1a1a2e',   // Texto principal
+  textMuted: '#6b7280',  // Texto secundario
+  border: '#e5e7eb',     // Bordes
+  danger: '#C55A11',     // Naranja (alertas/riesgo alto)
+  success: '#16a34a',    // Verde (estados correctos)
+  warning: '#b45309',    // Ámbar (advertencias)
 };
 
 /**

@@ -1,6 +1,29 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Target } from 'lucide-react';
+import InfoBanner from '../Common/InfoBanner';
+import StepSummary from '../Common/StepSummary';
+
+/**
+ * Sugerencias frecuentes de nombres de datos (para el datalist).
+ * No limita la entrada: el usuario puede escribir cualquier valor.
+ */
+const DATOS_SUGERIDOS = [
+  'Nombre completo',
+  'Cédula de identidad',
+  'Número de teléfono',
+  'Correo electrónico',
+  'Dirección',
+  'Fecha de nacimiento',
+  'Sexo',
+  'Número de expediente',
+  'Fotografía',
+  'Huella digital',
+  'Salario',
+  'Diagnóstico médico',
+  'Historial médico',
+  'Número de cuenta bancaria',
+];
 
 /**
  * Step4_Finalidad.jsx - Paso 4: Finalidad y Datos Recopilados
@@ -47,7 +70,13 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
   });
 
   useEffect(() => {
-    onChange(formData);
+    const isValid = !!(
+      formData.finalidad?.trim() &&
+      formData.baseLegal &&
+      formData.datosRecopilados.length > 0 &&
+      formData.datosRecopilados.every((d) => d.nombre.trim() && d.tipo)
+    );
+    onChange(formData, isValid);
   }, [formData]);
 
   /**
@@ -95,14 +124,18 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          🎯 <strong>Paso 4: Finalidad y Datos Recopilados</strong>
-          <br />
-          Define el propósito del tratamiento de datos y registra qué datos
-          personales recopila tu base de datos.
-        </p>
-      </div>
+      <InfoBanner
+        Icon={Target}
+        title="Paso 4: Finalidad y Datos Recopilados"
+        description="Define el propósito del tratamiento de datos y registra qué datos personales recopila tu base de datos."
+      />
+
+      {/* Sugerencias de nombres de datos frecuentes (para los inputs de la tabla) */}
+      <datalist id="datos-sugeridos">
+        {DATOS_SUGERIDOS.map((d) => (
+          <option key={d} value={d} />
+        ))}
+      </datalist>
 
       {/* Finalidad del tratamiento */}
       <div>
@@ -120,7 +153,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
           }
           placeholder="Ej: Mantener registro de pacientes para atención médica conforme a la Ley General de Salud..."
           rows="4"
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
         />
       </div>
 
@@ -137,7 +170,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
               baseLegal: e.target.value,
             }))
           }
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
         >
           <option value="">-- Selecciona --</option>
           {BASES_LEGALES.map((base) => (
@@ -197,6 +230,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                     <td className="px-4 py-3">
                       <input
                         type="text"
+                        list="datos-sugeridos"
                         value={dato.nombre}
                         onChange={(e) =>
                           actualizarDato(
@@ -206,7 +240,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                           )
                         }
                         placeholder="Ej: Nombre completo"
-                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       />
                     </td>
 
@@ -221,7 +255,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                             e.target.value
                           )
                         }
-                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       >
                         <option value="">--</option>
                         {TIPOS_DATOS.map((tipo) => (
@@ -243,7 +277,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                             e.target.value === 'obligatorio'
                           )
                         }
-                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       >
                         <option value="obligatorio">
                           Obligatorio
@@ -275,7 +309,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={agregarDato}
-          className="mt-3 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="mt-3 flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
         >
           <Plus className="w-4 h-4" />
           Agregar Dato
@@ -283,30 +317,19 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
       </div>
 
       {/* Resumen */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p className="text-xs font-semibold text-gray-600 mb-2">
-          📋 RESUMEN DEL PASO
-        </p>
-        <ul className="text-xs text-gray-600 space-y-1">
-          <li>
-            ✓ Finalidad: {formData.finalidad ? '✅' : '⏳ Pendiente'}
-          </li>
-          <li>
-            ✓ Base legal: {formData.baseLegal ? '✅' : '⏳ Pendiente'}
-          </li>
-          <li>
-            ✓ Datos recopilados:{' '}
-            <strong>{formData.datosRecopilados.length}</strong>
-          </li>
-          <li>
-            ✓ Obligatorios:{' '}
+      <StepSummary
+        items={[
+          `Finalidad: ${formData.finalidad ? '✅' : '⏳ Pendiente'}`,
+          `Base legal: ${formData.baseLegal ? '✅' : '⏳ Pendiente'}`,
+          <>Datos recopilados: <strong>{formData.datosRecopilados.length}</strong></>,
+          <>
+            Obligatorios:{' '}
             <strong>
-              {formData.datosRecopilados.filter((d) => d.obligatorio)
-                .length}
+              {formData.datosRecopilados.filter((d) => d.obligatorio).length}
             </strong>
-          </li>
-        </ul>
-      </div>
+          </>,
+        ]}
+      />
     </motion.div>
   );
 }

@@ -22,7 +22,7 @@ export default function FileUpload({
       <label className="block text-sm font-medium text-gray-700 mb-2">
         {label}
       </label>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all">
+      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all">
         <input
           type="file"
           accept={accept}

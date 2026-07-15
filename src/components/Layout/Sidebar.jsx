@@ -1,25 +1,36 @@
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Circle } from 'lucide-react';
+import {
+  Building2,
+  Database,
+  ShieldAlert,
+  Target,
+  ArrowLeftRight,
+  BarChart3,
+  Lock,
+  ClipboardList,
+  CheckCircle2,
+  Lightbulb,
+} from 'lucide-react';
 
 /**
- * Sidebar.jsx - Panel lateral con lista de pasos
- * 
+ * Sidebar.jsx - Panel lateral con la lista de pasos del wizard
+ *
  * Responsabilidades:
- * - Mostrar los 8 pasos del wizard
- * - Indicar paso actual
- * - Indicar pasos completados
+ * - Mostrar los 9 pasos con su ícono
+ * - Indicar paso activo, completados y pendientes
  * - Permitir navegar a pasos anteriores
  */
 
 const PASOS = [
-  { id: 1, nombre: 'General', icono: '📋' },
-  { id: 2, nombre: 'Inventario', icono: '📊' },
-  { id: 3, nombre: 'Amenazas', icono: '⚠️' },
-  { id: 4, nombre: 'Finalidad', icono: '🎯' },
-  { id: 5, nombre: 'Transferencia', icono: '🔄' },
-  { id: 6, nombre: 'Riesgos', icono: '📈' },
-  { id: 7, nombre: 'Seguridad', icono: '🔒' },
-  { id: 8, nombre: 'Revisión', icono: '✅' },
+  { id: 1, nombre: 'General', icono: Building2 },
+  { id: 2, nombre: 'Inventario', icono: Database },
+  { id: 3, nombre: 'Amenazas', icono: ShieldAlert },
+  { id: 4, nombre: 'Finalidad', icono: Target },
+  { id: 5, nombre: 'Transferencia', icono: ArrowLeftRight },
+  { id: 6, nombre: 'Riesgos', icono: BarChart3 },
+  { id: 7, nombre: 'Seguridad', icono: Lock },
+  { id: 8, nombre: 'Seguimiento', icono: ClipboardList },
+  { id: 9, nombre: 'Revisión', icono: CheckCircle2 },
 ];
 
 export default function Sidebar({ currentStep, setCurrentStep }) {
@@ -34,69 +45,96 @@ export default function Sidebar({ currentStep, setCurrentStep }) {
   };
 
   return (
-    <aside className="w-72 bg-white border-r border-gray-200 p-6 min-h-screen">
-      {/* Título */}
-      <h2 className="text-lg font-bold text-gray-900 mb-6">
-        Pasos
-      </h2>
+    <aside className="w-64 flex-shrink-0 bg-[#1B2A4A] overflow-y-auto flex flex-col">
+      <div className="p-4 flex-1">
+        {/* Título */}
+        <h2 className="px-2 pt-3 mb-5 text-xs font-bold uppercase tracking-[0.2em] text-[#C9A84C]">
+          Pasos
+        </h2>
 
-      {/* Lista de pasos */}
-      <nav className="space-y-3">
-        {PASOS.map((paso) => {
-          const isActive = paso.id === currentStep;
-          const isCompleted = paso.id < currentStep;
-          const canClick = paso.id < currentStep;
+        {/* Lista de pasos */}
+        <nav className="space-y-1">
+          {PASOS.map((paso) => {
+            const Icono = paso.icono;
+            const isActive = paso.id === currentStep;
+            const isCompleted = paso.id < currentStep;
+            const canClick = paso.id < currentStep;
 
-          return (
-            <button
-              key={paso.id}
-              onClick={() => handleStepClick(paso.id)}
-              disabled={!canClick}
-              className={`
-                w-full flex items-center gap-3 px-4 py-3 rounded-lg
-                transition-all duration-200
-                ${isActive
-                  ? 'bg-blue-100 border-l-4 border-blue-600 text-blue-700 font-semibold'
-                  : isCompleted
-                  ? 'text-gray-700 hover:bg-gray-50 cursor-pointer'
-                  : 'text-gray-400 cursor-not-allowed'
-                }
-              `}
-            >
-              {/* Icono de estado */}
-              <div className="text-xl">{paso.icono}</div>
+            return (
+              <button
+                key={paso.id}
+                onClick={() => handleStepClick(paso.id)}
+                disabled={!canClick}
+                className={`
+                  w-full flex items-center gap-3 pl-3 pr-3 py-2 rounded-lg border-l-[3px]
+                  transition-all duration-200
+                  ${
+                    isActive
+                      ? 'bg-white/10 border-[#C9A84C] cursor-default'
+                      : isCompleted
+                      ? 'border-transparent hover:bg-white/5 cursor-pointer'
+                      : 'border-transparent cursor-not-allowed'
+                  }
+                `}
+              >
+                {/* Ícono en contenedor cuadrado 36x36 */}
+                <span
+                  className={`flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0
+                    ${
+                      isActive
+                        ? 'bg-[#C9A84C]/15 text-[#C9A84C]'
+                        : isCompleted
+                        ? 'bg-green-500/10 text-green-400'
+                        : 'bg-white/5 text-white/30'
+                    }`}
+                >
+                  <Icono size={18} />
+                </span>
 
-              {/* Info paso */}
-              <div className="flex-1 text-left">
-                <p className="text-sm font-medium">
-                  Paso {paso.id}
-                </p>
-                <p className="text-xs opacity-75">
+                {/* Nombre del paso */}
+                <span
+                  className={`flex-1 text-left text-sm
+                    ${
+                      isActive
+                        ? 'text-white font-semibold'
+                        : isCompleted
+                        ? 'text-white/70'
+                        : 'text-white/40'
+                    }`}
+                >
                   {paso.nombre}
-                </p>
-              </div>
+                </span>
 
-              {/* Indicador estado */}
-              {isCompleted ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : isActive ? (
-                <Circle className="w-5 h-5 text-blue-600 fill-blue-600" />
-              ) : (
-                <Circle className="w-5 h-5 text-gray-300" />
-              )}
-            </button>
-          );
-        })}
-      </nav>
+                {/* Indicador a la derecha: número / check / dot activo */}
+                {isCompleted ? (
+                  <CheckCircle2 size={16} className="text-green-400 flex-shrink-0" />
+                ) : isActive ? (
+                  <span className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-xs text-[#C9A84C] font-semibold">
+                      {paso.id}
+                    </span>
+                    <span className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse" />
+                  </span>
+                ) : (
+                  <span className="text-xs text-white/20 flex-shrink-0">
+                    {paso.id}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-      {/* Info adicional */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-xs font-semibold text-blue-700 mb-2">
-            💡 TIP
-          </p>
-          <p className="text-xs text-blue-600">
-            Puedes volver a pasos anteriores para revisar o corregir información.
+      {/* Tip card */}
+      <div className="p-4">
+        <div className="rounded-lg bg-[#C9A84C]/15 border border-[#C9A84C]/30 p-3">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Lightbulb size={14} className="text-[#C9A84C]" />
+            <span className="text-xs font-semibold text-[#C9A84C]">Tip</span>
+          </div>
+          <p className="text-xs text-white/70 leading-relaxed">
+            Puedes volver a pasos anteriores para revisar o corregir la información.
           </p>
         </div>
       </div>

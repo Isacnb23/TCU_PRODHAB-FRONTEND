@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, ShieldAlert } from 'lucide-react';
+import InfoBanner from '../Common/InfoBanner';
 
 /**
  * Step3_Amenazas.jsx - Paso 3: Evaluación de Amenazas
@@ -85,7 +86,10 @@ export default function Step3_Amenazas({ data = {}, onChange }) {
   });
 
   useEffect(() => {
-    onChange({ respuestas });
+    // Válido cuando las 20 preguntas (4 ámbitos × 5) están respondidas
+    const totalPreguntas = AMBITOS.length * 5;
+    const isValid = Object.keys(respuestas).length === totalPreguntas;
+    onChange({ respuestas }, isValid);
   }, [respuestas]);
 
   /**
@@ -126,7 +130,7 @@ export default function Step3_Amenazas({ data = {}, onChange }) {
    */
   const obtenerColor = (puntuacion) => {
     if (puntuacion >= 4) return 'bg-green-100 border-green-300 text-green-800';
-    if (puntuacion === 3) return 'bg-blue-100 border-blue-300 text-blue-800';
+    if (puntuacion === 3) return 'bg-primary-100 border-primary-300 text-primary-800';
     if (puntuacion === 2) return 'bg-yellow-100 border-yellow-300 text-yellow-800';
     return 'bg-red-100 border-red-300 text-red-800';
   };
@@ -147,14 +151,11 @@ export default function Step3_Amenazas({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          ⚠️ <strong>Paso 3: Evaluación de Amenazas</strong>
-          <br />
-          Responde SÍ o NO a cada pregunta sobre las medidas de seguridad en 4
-          ámbitos.
-        </p>
-      </div>
+      <InfoBanner
+        Icon={ShieldAlert}
+        title="Paso 3: Evaluación de Amenazas"
+        description="Responde SÍ o NO a cada pregunta sobre las medidas de seguridad en 4 ámbitos."
+      />
 
       {/* Barra de progreso general */}
       <div className="bg-white rounded-lg p-4 border border-gray-200">
@@ -162,7 +163,7 @@ export default function Step3_Amenazas({ data = {}, onChange }) {
           <span className="text-sm font-semibold text-gray-700">
             Progreso General
           </span>
-          <span className="text-sm font-bold text-blue-600">
+          <span className="text-sm font-bold text-primary-600">
             {puntuacionTotal} / 20 ({Math.round(puntuacionPromedio)}%)
           </span>
         </div>
@@ -170,7 +171,7 @@ export default function Step3_Amenazas({ data = {}, onChange }) {
           <motion.div
             animate={{ width: `${puntuacionPromedio}%` }}
             transition={{ duration: 0.5 }}
-            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
+            className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full"
           />
         </div>
       </div>

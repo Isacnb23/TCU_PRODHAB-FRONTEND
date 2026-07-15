@@ -1,46 +1,40 @@
 /**
  * Header.jsx - Encabezado global de la aplicación
- * 
+ *
  * Responsabilidades:
- * - Logo y nombre de la aplicación
- * - Información del proyecto
- * - Navegación principal (si la hay)
+ * - Logo institucional PRODHAB (versión blanca sobre fondo navy)
+ * - Identificación del proyecto (Ley 8968)
  */
+
+// Logo oficial PRODHAB en blanco (PNG transparente, resuelto por Vite)
+import logoProdhab from '../../assets/logos/Logo_Prodhab_Blanco_PNG.png';
 
 export default function Header() {
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-8 py-6">
-        {/* Contenedor flex para logo + info */}
-        <div className="flex items-center justify-between">
-          {/* Logo + Titulo */}
-          <div className="flex items-center gap-4">
-            {/* Logo (placeholder) */}
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">PD</span>
-            </div>
-
-            {/* Información */}
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                PRODHAB
-              </h1>
-              <p className="text-sm text-gray-600">
-                Sistema Web de Protocolos de Actuación
-              </p>
-            </div>
-          </div>
-
-          {/* Info proyecto */}
-          <div className="text-right">
-            <p className="text-sm text-gray-700">
-              <span className="font-semibold">Ley 8968</span> - Protección de Datos
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              v1.0.0 | 2026
+    <header
+      className="h-16 flex-shrink-0 border-b-2 border-[#C9A84C]"
+      style={{ background: 'linear-gradient(to right, #1B2A4A, #243761)' }}
+    >
+      <div className="h-full max-w-full mx-auto px-6 flex items-center justify-between">
+        {/* Logo + nombre (sin caja de fondo) */}
+        <div className="flex items-center gap-3">
+          <img
+            src={logoProdhab}
+            alt="PRODHAB - Agencia de Protección de Datos de los Habitantes"
+            className="h-8 w-auto"
+          />
+          <div className="leading-tight">
+            <p className="text-xl font-bold text-white">PRODHAB</p>
+            <p className="text-xs text-white/60">
+              Sistema Web de Protocolos de Actuación
             </p>
           </div>
         </div>
+
+        {/* Badge Ley 8968 */}
+        <span className="bg-white/10 border border-white/20 text-white text-xs px-3 py-1 rounded-full">
+          Ley 8968
+        </span>
       </div>
     </header>
   );

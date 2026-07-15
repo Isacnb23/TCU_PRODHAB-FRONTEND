@@ -64,8 +64,8 @@ export default function Step8_Revision({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
+      <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+        <p className="text-sm text-primary-800">
           ✅ <strong>Paso 8: Revisión y Exportación</strong>
           <br />
           Revisa toda la información ingresada y descarga tu protocolo en
@@ -79,7 +79,7 @@ export default function Step8_Revision({ data = {}, onChange }) {
           <span className="text-sm font-semibold text-gray-700">
             Completitud del Formulario
           </span>
-          <span className="text-lg font-bold text-blue-600">
+          <span className="text-lg font-bold text-primary-600">
             {completitud}%
           </span>
         </div>
@@ -87,7 +87,7 @@ export default function Step8_Revision({ data = {}, onChange }) {
           <motion.div
             animate={{ width: `${completitud}%` }}
             transition={{ duration: 0.5 }}
-            className="h-full bg-gradient-to-r from-green-500 to-blue-600"
+            className="h-full bg-gradient-to-r from-green-500 to-primary-600"
           />
         </div>
       </div>
@@ -249,14 +249,14 @@ export default function Step8_Revision({ data = {}, onChange }) {
       </motion.div>
 
       {/* Información de contacto PRODHAB */}
-      <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
-        <p className="text-sm font-semibold text-blue-900 mb-2">
+      <div className="bg-primary-50 border border-primary-300 rounded-lg p-4">
+        <p className="text-sm font-semibold text-primary-900 mb-2">
           📞 Soporte PRODHAB
         </p>
-        <p className="text-xs text-blue-800 mb-1">
+        <p className="text-xs text-primary-800 mb-1">
           <strong>Supervisora:</strong> MSc. Wendy Rivera Román
         </p>
-        <p className="text-xs text-blue-800">
+        <p className="text-xs text-primary-800">
           <strong>Email:</strong> rrhh@prodhab.go.cr | <strong>Teléfono:</strong> 2234-0189 ext 115
         </p>
       </div>

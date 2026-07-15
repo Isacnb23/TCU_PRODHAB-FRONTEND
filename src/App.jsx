@@ -48,16 +48,17 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header Global */}
+      {/* Layout general: header fijo arriba, debajo sidebar + contenido */}
+      <div className="h-screen flex flex-col bg-[#F8F9FC]">
+        {/* Header Global (altura fija h-16) */}
         <Header />
 
-        <div className="flex gap-0">
-          {/* Sidebar */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar (altura completa) */}
           <Sidebar currentStep={currentStep} setCurrentStep={setCurrentStep} />
 
-          {/* Contenido Principal */}
-          <main className="flex-1 p-8">
+          {/* Contenido Principal (scroll propio) */}
+          <main className="flex-1 overflow-y-auto bg-[#F8F9FC] p-8">
             <Routes>
               {/* Ruta principal: Wizard */}
               <Route

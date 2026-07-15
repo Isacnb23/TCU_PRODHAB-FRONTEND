@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, BarChart3 } from 'lucide-react';
+import InfoBanner from '../Common/InfoBanner';
 
 /**
  * Step6_Riesgos.jsx - Paso 6: Gestión de Riesgos
@@ -34,6 +35,23 @@ const CONSECUENCIAS = [
 ];
 
 /**
+ * Riesgos sugeridos (clic para agregar). Los valores predeterminados quedan
+ * editables después. Se guardan como ids internos:
+ *   probabilidad → id 1..5 (Nunca..Siempre)
+ *   consecuencia → id 3=Moderado(4), 4=Pesado(8), 5=Severo(16)
+ */
+const RIESGOS_SUGERIDOS = [
+  { descripcion: 'Acceso no autorizado a datos personales', probabilidad: 2, consecuencia: 4 },
+  { descripcion: 'Pérdida o destrucción accidental de datos', probabilidad: 2, consecuencia: 3 },
+  { descripcion: 'Filtración de datos por empleado interno', probabilidad: 1, consecuencia: 5 },
+  { descripcion: 'Fallo del sistema de almacenamiento', probabilidad: 2, consecuencia: 4 },
+  { descripcion: 'Ataque cibernético externo (ransomware)', probabilidad: 1, consecuencia: 5 },
+  { descripcion: 'Uso indebido de datos por terceros', probabilidad: 2, consecuencia: 3 },
+  { descripcion: 'Pérdida de dispositivos con datos personales', probabilidad: 2, consecuencia: 4 },
+  { descripcion: 'Acceso no autorizado por contraseñas débiles', probabilidad: 3, consecuencia: 3 },
+];
+
+/**
  * Calcular nivel de riesgo
  */
 function obtenerNivel(nri) {
@@ -46,9 +64,13 @@ function obtenerNivel(nri) {
 export default function Step6_Riesgos({ data = {}, onChange }) {
   const [riesgos, setRiesgos] = useState(data.riesgos || []);
   const [showMatriz, setShowMatriz] = useState(false);
+  const [mostrarSugeridos, setMostrarSugeridos] = useState(false);
 
   useEffect(() => {
-    onChange({ riesgos });
+    const isValid =
+      riesgos.length > 0 &&
+      riesgos.every((r) => r.descripcion.trim() && r.probabilidad > 0);
+    onChange({ riesgos }, isValid);
   }, [riesgos]);
 
   /**
@@ -62,6 +84,22 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
       consecuencia: 1,
     };
     setRiesgos([...riesgos, nuevoRiesgo]);
+  };
+
+  /**
+   * Agregar un riesgo sugerido con sus valores predeterminados (editables).
+   */
+  const agregarRiesgoSugerido = (sugerido) => {
+    setRiesgos((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        descripcion: sugerido.descripcion,
+        probabilidad: sugerido.probabilidad,
+        consecuencia: sugerido.consecuencia,
+      },
+    ]);
+    setMostrarSugeridos(false);
   };
 
   /**
@@ -132,14 +170,11 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
       className="space-y-6"
     >
       {/* Descripción */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          📈 <strong>Paso 6: Gestión de Riesgos</strong>
-          <br />
-          Identifica riesgos de seguridad. Se calcula automáticamente el NRI
-          (Número de Riesgo Inherente).
-        </p>
-      </div>
+      <InfoBanner
+        Icon={BarChart3}
+        title="Paso 6: Gestión de Riesgos"
+        description="Identifica riesgos de seguridad. Se calcula automáticamente el NRI (Número de Riesgo Inherente)."
+      />
 
       {/* Botón mostrar matriz */}
       <div className="flex justify-end">
@@ -289,7 +324,7 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
                           )
                         }
                         placeholder="Ej: Acceso no autorizado a BD"
-                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       />
                     </td>
 
@@ -304,7 +339,7 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
                             parseInt(e.target.value)
                           )
                         }
-                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       >
                         <option value="0">--</option>
                         {PROBABILIDADES.map((p) => (
@@ -326,7 +361,7 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
                             parseInt(e.target.value)
                           )
                         }
-                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       >
                         <option value="1">--</option>
                         {CONSECUENCIAS.map((c) => (
@@ -372,16 +407,61 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
         </table>
       </div>
 
-      {/* Botón agregar */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={agregarRiesgo}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        <Plus className="w-4 h-4" />
-        Agregar Riesgo
-      </motion.button>
+      {/* Botones: agregar + ver sugeridos */}
+      <div className="flex flex-wrap gap-3">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={agregarRiesgo}
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+        >
+          <Plus className="w-4 h-4" />
+          Agregar Riesgo
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setMostrarSugeridos(!mostrarSugeridos)}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+        >
+          <BarChart3 className="w-4 h-4" />
+          {mostrarSugeridos ? '🔽 Ocultar' : '🔼 Ver'} Sugeridos
+        </motion.button>
+      </div>
+
+      {/* Riesgos sugeridos */}
+      {mostrarSugeridos && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-purple-50 border border-purple-200 rounded-lg p-4"
+        >
+          <p className="text-sm font-semibold text-purple-900 mb-3">
+            💡 Riesgos Sugeridos (clic para agregar)
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {RIESGOS_SUGERIDOS.map((sug, idx) => (
+              <motion.button
+                key={idx}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => agregarRiesgoSugerido(sug)}
+                className="text-left px-3 py-2 bg-white border border-purple-300 rounded hover:bg-purple-100 transition-colors"
+              >
+                <p className="text-xs font-semibold text-purple-700">
+                  {sug.descripcion}
+                </p>
+                <p className="text-xs text-gray-600">
+                  Prob: {obtenerNombreProbabilidad(sug.probabilidad)} · Cons:{' '}
+                  {obtenerNombreConsecuencia(sug.consecuencia)} · NRI{' '}
+                  {calcularNRI(sug.probabilidad, sug.consecuencia)}
+                </p>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Estadísticas */}
       <div className="grid grid-cols-4 gap-3">
