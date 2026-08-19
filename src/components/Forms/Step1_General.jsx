@@ -7,7 +7,7 @@ import Tooltip from '../Common/Tooltip';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
 import OptionalSection from '../Common/OptionalSection';
-import { Building2 } from 'lucide-react';
+import { Building2, AlertCircle } from 'lucide-react';
 
 /**
  * Step1_General.jsx - Paso 1: Información General
@@ -302,7 +302,7 @@ export default function Step1_General({ data = {}, onChange }) {
             `}
           />
           {errors.entidad && touched.entidad && (
-            <p className="text-red-500 text-sm mt-1">⚠️ {errors.entidad}</p>
+            <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.entidad}</p>
           )}
         </div>
 
@@ -345,7 +345,7 @@ export default function Step1_General({ data = {}, onChange }) {
             `}
           />
           {errors.nombreBD && touched.nombreBD && (
-            <p className="text-red-500 text-sm mt-1">⚠️ {errors.nombreBD}</p>
+            <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.nombreBD}</p>
           )}
         </div>
 
@@ -373,7 +373,7 @@ export default function Step1_General({ data = {}, onChange }) {
             `}
           />
           {errors.responsable && touched.responsable && (
-            <p className="text-red-500 text-sm mt-1">⚠️ {errors.responsable}</p>
+            <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.responsable}</p>
           )}
         </div>
 
@@ -405,7 +405,7 @@ export default function Step1_General({ data = {}, onChange }) {
             ))}
           </select>
           {errors.gestorBD && touched.gestorBD && (
-            <p className="text-red-500 text-sm mt-1">⚠️ {errors.gestorBD}</p>
+            <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.gestorBD}</p>
           )}
         </div>
 
@@ -464,8 +464,8 @@ export default function Step1_General({ data = {}, onChange }) {
             />
           )}
 
-          {errors.versionBD && touched.versionBD && (
-            <p className="text-red-500 text-sm mt-1">⚠️ {errors.versionBD}</p>
+          {errors.versionBD && touched.versionBD && formData.gestorBD && (
+            <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.versionBD}</p>
           )}
         </div>
 
@@ -493,7 +493,7 @@ export default function Step1_General({ data = {}, onChange }) {
             `}
           />
           {errors.contacto && touched.contacto && (
-            <p className="text-red-500 text-sm mt-1">⚠️ {errors.contacto}</p>
+            <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.contacto}</p>
           )}
         </div>
       </div>
@@ -632,7 +632,7 @@ export default function Step1_General({ data = {}, onChange }) {
           fileName={formData.diagramaER?.name}
         />
         {errors.diagramaER && (
-          <p className="text-red-500 text-sm mt-1">⚠️ {errors.diagramaER}</p>
+          <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.diagramaER}</p>
         )}
       </div>
 

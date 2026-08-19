@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, Info } from 'lucide-react';
 import StepIndicator from './StepIndicator';
 import NavigationButtons from './NavigationButtons';
+import ObservacionesResumen from './ObservacionesResumen';
+import SubsanacionArea from './SubsanacionArea';
+import * as expedienteService from '../../services/expedienteService';
+import { extraerDatosPaso } from '../../utils/pasoMapper';
+import { PASO_TITULOS } from '../../utils/revisionDisplay';
 import Step1_General from '../Forms/Step1_General';
 import Step2_Inventario from '../Forms/Step2_Inventario';
 import Step3_Amenazas from '../Forms/Step3_Amenazas';
@@ -24,6 +31,8 @@ import Step9_Revision from '../Forms/Step9_Revision';
  */
 
 const TOTAL_STEPS = 9;
+// El paso 9 es la revisión/envío en sí: no se exige "completado" para poder enviar.
+const PASOS_REQUERIDOS_PARA_ENVIO = 8;
 
 const STEPS_COMPONENTS = [
   Step1_General,
@@ -42,8 +51,30 @@ export default function WizardContainer({
   setCurrentStep,
   formData,
   setFormData,
+  expedienteId,
+  estado,
+  readOnly = false,
+  observaciones = [],
+  subsanaciones = [],
+  onSubsanacionesChange = async () => {},
 }) {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [saveWarning, setSaveWarning] = useState(null);
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [enviarError, setEnviarError] = useState(null);
+
+  // Misma noción de completitud que ya alimenta los chips "Completados X / Falta Y"
+  // del StepIndicator (completados = currentStep - 1): en el paso 9, eso equivale a
+  // haber completado los 8 pasos requeridos.
+  const puedeEnviar = currentStep - 1 >= PASOS_REQUERIDOS_PARA_ENVIO;
+
+  // El aviso de error de envío es específico del intento; no debe seguir viéndose
+  // si el usuario navega a otro paso.
+  useEffect(() => {
+    setEnviarError(null);
+  }, [currentStep]);
   const [stepValidation, setStepValidation] = useState({
     1: false,
     2: false,
@@ -58,6 +89,9 @@ export default function WizardContainer({
 
   // Obtener componente actual
   const CurrentStepComponent = STEPS_COMPONENTS[currentStep - 1];
+
+  const observacionesDelPaso = observaciones.filter((o) => o.paso === currentStep);
+  const hayAreaSubsanacion = estado === 'RequiereSubsanacion' && observacionesDelPaso.length > 0;
 
   /**
    * Maneja cambios de datos en el paso actual.
@@ -100,8 +134,10 @@ export default function WizardContainer({
    * el botón "Siguiente" ya viene deshabilitado si el paso no es válido.
    */
   const handleNext = async () => {
+    if (isLoading) return; // evita doble click / doble PUT mientras hay un guardado en vuelo
+
     if (currentStep === TOTAL_STEPS) {
-      // Último paso - descargar Excel
+      // Último paso - descargar Excel (sin conexión a backend en esta parte)
       setIsLoading(true);
       try {
         // TODO: Implementar descarga de Excel
@@ -114,9 +150,34 @@ export default function WizardContainer({
       } finally {
         setIsLoading(false);
       }
-    } else if (stepValidation[currentStep] === true) {
-      setCurrentStep(currentStep + 1);
+      return;
     }
+
+    if (readOnly) {
+      // Modo consulta: solo navegar, sin validar ni guardar nada.
+      setCurrentStep(currentStep + 1);
+      return;
+    }
+
+    if (stepValidation[currentStep] !== true) return;
+
+    // Guardar el paso en el backend. El respaldo en localStorage (WizardPage) sigue
+    // ocurriendo siempre vía el useEffect existente; un fallo acá NUNCA bloquea el avance.
+    setIsLoading(true);
+    try {
+      const datosPaso = extraerDatosPaso(formData, currentStep);
+      await expedienteService.guardarPaso(expedienteId, currentStep, datosPaso, true);
+      setSaveWarning(null);
+    } catch (error) {
+      console.error(`No se pudo guardar el paso ${currentStep} en el servidor:`, error);
+      setSaveWarning(
+        'No se pudo guardar en el servidor, pero tus datos están guardados localmente. Se reintentará.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+
+    setCurrentStep(currentStep + 1);
   };
 
   /**
@@ -128,8 +189,55 @@ export default function WizardContainer({
     }
   };
 
+  /**
+   * Pide confirmación antes de enviar el expediente a PRODHAB.
+   */
+  const handleEnviar = () => {
+    setEnviarError(null);
+    setMostrarConfirmacion(true);
+  };
+
+  /**
+   * Confirmado el envío: llama al backend. Éxito → vuelve a la lista.
+   * Error 409 (pasos faltantes u otro conflicto de estado) → banner no intrusivo, no navega.
+   */
+  const confirmarEnvio = async () => {
+    setMostrarConfirmacion(false);
+    setEnviando(true);
+    setEnviarError(null);
+    try {
+      await expedienteService.enviar(expedienteId);
+      alert('✅ Expediente enviado correctamente a PRODHAB.');
+      navigate('/expedientes');
+    } catch (error) {
+      if (error.status === 409) {
+        setEnviarError(error.message);
+      } else {
+        console.error('No se pudo enviar el expediente:', error);
+        setEnviarError('No se pudo enviar. Intenta de nuevo.');
+      }
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Banner de solo lectura: el expediente ya no es Borrador */}
+      {readOnly && (
+        <div className="max-w-4xl mx-auto mb-6 flex items-center gap-3 rounded-xl bg-[#1B2A4A]/5 border border-[#1B2A4A]/20 text-[#1B2A4A] text-sm px-4 py-3">
+          <Info size={16} className="flex-shrink-0" />
+          {estado === 'Enviado'
+            ? 'Este expediente ya fue enviado a PRODHAB. Está en modo solo lectura.'
+            : `Estado: ${estado}. Solo lectura.`}
+        </div>
+      )}
+
+      {/* Resumen de observaciones del Admin, agrupadas por paso, con acceso directo */}
+      {estado === 'RequiereSubsanacion' && observaciones.length > 0 && (
+        <ObservacionesResumen observaciones={observaciones} onIrAlPaso={setCurrentStep} />
+      )}
+
       {/* Indicador de progreso */}
       <StepIndicator currentStep={currentStep} />
 
@@ -141,18 +249,84 @@ export default function WizardContainer({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+          className="max-w-4xl mx-auto bg-white rounded-2xl border border-gray-100 p-8"
+          style={{ boxShadow: '0 4px 24px rgba(27,42,74,0.08)' }}
         >
-          <CurrentStepComponent
-            data={
-              currentStep === TOTAL_STEPS
-                ? formData
-                : (formData[`step${currentStep}_${getStepName(currentStep)}`] || {})
-            }
-            onChange={handleStepDataChange}
-          />
+          {/* Banner con la(s) observación(es) del Admin para el paso actual: visible
+              siempre que existan, para dar contexto mientras el usuario corrige. */}
+          {observacionesDelPaso.length > 0 && (
+            <div className="mb-6 space-y-2">
+              {observacionesDelPaso.map((obs) => (
+                <div
+                  key={obs.id}
+                  className="flex items-start gap-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3"
+                >
+                  <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p>
+                      <span className="font-semibold">Observación del Admin:</span> {obs.texto}
+                    </p>
+                    <p className="text-xs text-amber-600 mt-0.5">
+                      {new Date(obs.fechaCreacion).toLocaleString('es-CR', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Un fieldset deshabilitado desactiva nativamente todos los inputs/selects/
+              textareas/botones de los 9 Steps sin tener que tocar cada componente. */}
+          <fieldset disabled={readOnly} className="border-0 p-0 m-0 min-w-0">
+            <CurrentStepComponent
+              data={
+                currentStep === TOTAL_STEPS
+                  ? formData
+                  : (formData[`step${currentStep}_${getStepName(currentStep)}`] || {})
+              }
+              onChange={handleStepDataChange}
+              onEnviar={handleEnviar}
+              puedeEnviar={puedeEnviar}
+              readOnly={readOnly}
+              estado={estado}
+            />
+          </fieldset>
         </motion.div>
       </AnimatePresence>
+
+      {/* Subsanación de este paso: solo si está observado y el expediente admite corrección */}
+      {hayAreaSubsanacion && (
+        <SubsanacionArea
+          expedienteId={expedienteId}
+          paso={currentStep}
+          campo={PASO_TITULOS[currentStep]}
+          subsanaciones={subsanaciones}
+          onCambio={onSubsanacionesChange}
+        />
+      )}
+
+      {/* Aviso no intrusivo: el guardado en el servidor falló, pero los datos
+          están a salvo en localStorage y el usuario puede seguir avanzando */}
+      {saveWarning && (
+        <div className="max-w-4xl mx-auto mt-4 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3">
+          <AlertTriangle size={16} className="flex-shrink-0" />
+          {saveWarning}
+        </div>
+      )}
+
+      {/* Aviso no intrusivo: el envío a PRODHAB falló (409 por pasos faltantes u otro conflicto) */}
+      {enviarError && (
+        <div className="max-w-4xl mx-auto mt-4 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3">
+          <AlertTriangle size={16} className="flex-shrink-0" />
+          {enviarError}
+        </div>
+      )}
 
       {/* Botones de navegación */}
       <NavigationButtons
@@ -160,9 +334,41 @@ export default function WizardContainer({
         totalSteps={TOTAL_STEPS}
         onNext={handleNext}
         onPrev={handlePrev}
-        isValid={stepValidation[currentStep] === true}
+        isValid={readOnly || stepValidation[currentStep] === true}
         isLoading={isLoading}
       />
+
+      {/* Confirmación antes de enviar a PRODHAB */}
+      {mostrarConfirmacion && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-semibold text-[#1B2A4A] mb-2">
+              {estado === 'RequiereSubsanacion'
+                ? '¿Reenviar el expediente subsanado a PRODHAB?'
+                : '¿Enviar el expediente a PRODHAB?'}
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">Una vez enviado no podrás editarlo.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setMostrarConfirmacion(false)}
+                disabled={enviando}
+                className="px-5 py-2.5 rounded-xl font-semibold text-[#1B2A4A] border-2 border-[#1B2A4A]/20 hover:bg-[#1B2A4A]/5 transition-all disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmarEnvio}
+                disabled={enviando}
+                className="px-5 py-2.5 rounded-xl font-semibold text-white bg-[#1B2A4A] hover:bg-[#243761] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {enviando ? 'Enviando...' : 'Sí, enviar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

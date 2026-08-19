@@ -1,84 +1,95 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Header from './components/Layout/Header';
-import Sidebar from './components/Layout/Sidebar';
-import WizardContainer from './components/Wizard/WizardContainer';
+import Login from './components/Auth/Login';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import AdminRoute from './components/Auth/AdminRoute';
+import MisExpedientes from './components/Expedientes/MisExpedientes';
+import RevisionBandeja from './components/Revision/RevisionBandeja';
+import RevisionExpediente from './components/Revision/RevisionExpediente';
+import WizardPage from './pages/WizardPage';
 import './App.css';
 
 /**
  * App.jsx - Componente RAÍZ de la aplicación
- * 
+ *
  * Responsabilidades:
- * - Router principal (navegación entre pasos)
- * - Estado global del formulario
- * - Layout general (Header + Sidebar + Contenido)
+ * - Router principal: /login, /expedientes (lista), /expedientes/:id (wizard)
+ * - Layout general de las rutas que no son el wizard (Header + contenido)
  */
 
 function App() {
-  // Estado global del formulario
-  const [formData, setFormData] = useState({
-    step1_general: {},
-    step2_inventario: {},
-    step3_amenazas: {},
-    step4_finalidad: {},
-    step5_transferencia: {},
-    step6_riesgos: {},
-    step7_seguridad: {},
-    step8_revision: {},
-  });
-
-  // Estado de paso actual
-  const [currentStep, setCurrentStep] = useState(1);
-
-  // Cargar datos guardados al iniciar
+  // Las claves globales de localStorage (prodhab_formData/prodhab_currentStep)
+  // quedaron obsoletas: el wizard ahora respalda por expediente
+  // (prodhab_formData_{id} / prodhab_currentStep_{id}, ver WizardPage.jsx).
   useEffect(() => {
-    const saved = localStorage.getItem('prodhab_formData');
-    if (saved) {
-      setFormData(JSON.parse(saved));
-      const savedStep = localStorage.getItem('prodhab_currentStep');
-      if (savedStep) setCurrentStep(parseInt(savedStep));
-    }
+    localStorage.removeItem('prodhab_formData');
+    localStorage.removeItem('prodhab_currentStep');
   }, []);
-
-  // Guardar datos cuando cambien
-  useEffect(() => {
-    localStorage.setItem('prodhab_formData', JSON.stringify(formData));
-    localStorage.setItem('prodhab_currentStep', currentStep.toString());
-  }, [formData, currentStep]);
 
   return (
     <BrowserRouter>
-      {/* Layout general: header fijo arriba, debajo sidebar + contenido */}
-      <div className="h-screen flex flex-col bg-[#F8F9FC]">
-        {/* Header Global (altura fija h-16) */}
-        <Header />
+      <Routes>
+        {/* Ruta pública: Login */}
+        <Route path="/login" element={<Login />} />
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar (altura completa) */}
-          <Sidebar currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        {/* Lista de expedientes (protegida) */}
+        <Route
+          path="/expedientes"
+          element={
+            <ProtectedRoute>
+              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+                <Header />
+                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                  <MisExpedientes />
+                </main>
+              </div>
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Contenido Principal (scroll propio) */}
-          <main className="flex-1 overflow-y-auto bg-[#F8F9FC] p-8">
-            <Routes>
-              {/* Ruta principal: Wizard */}
-              <Route
-                path="/"
-                element={
-                  <WizardContainer
-                    currentStep={currentStep}
-                    setCurrentStep={setCurrentStep}
-                    formData={formData}
-                    setFormData={setFormData}
-                  />
-                }
-              />
+        {/* Wizard sobre un expediente puntual (protegida) */}
+        <Route
+          path="/expedientes/:id"
+          element={
+            <ProtectedRoute>
+              <WizardPage />
+            </ProtectedRoute>
+          }
+        />
 
-              {/* Ruta 404 */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-        </div>
-      </div>
+        {/* Panel de revisión del Admin: pantalla aparte del wizard (protegida, solo Admin) */}
+        <Route
+          path="/revision"
+          element={
+            <AdminRoute>
+              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+                <Header />
+                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                  <RevisionBandeja />
+                </main>
+              </div>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/revision/:id"
+          element={
+            <AdminRoute>
+              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+                <Header />
+                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                  <RevisionExpediente />
+                </main>
+              </div>
+            </AdminRoute>
+          }
+        />
+
+        {/* Raíz y 404: siempre a la lista de expedientes */}
+        <Route path="/" element={<Navigate to="/expedientes" replace />} />
+        <Route path="*" element={<Navigate to="/expedientes" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

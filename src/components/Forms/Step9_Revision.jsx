@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, CheckCircle, XCircle, CheckCircle2 } from 'lucide-react';
+import { Download, CheckCircle, XCircle, CheckCircle2, Send } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 
 /**
@@ -10,7 +10,7 @@ import InfoBanner from '../Common/InfoBanner';
  * El botón "Descargar Excel" no depende de isValid.
  */
 
-export default function Step9_Revision({ data = {} }) {
+export default function Step9_Revision({ data = {}, onEnviar, puedeEnviar, readOnly, estado }) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const g = data.step1_general || {};
@@ -287,6 +287,38 @@ export default function Step9_Revision({ data = {} }) {
           </>
         )}
       </motion.button>
+
+      {/* Botón enviar a PRODHAB */}
+      {readOnly ? (
+        <button
+          type="button"
+          disabled
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-white bg-gray-400 cursor-not-allowed"
+        >
+          <Send className="w-5 h-5" />
+          Expediente ya enviado
+        </button>
+      ) : (
+        <div>
+          <motion.button
+            whileHover={puedeEnviar ? { scale: 1.02 } : {}}
+            whileTap={puedeEnviar ? { scale: 0.98 } : {}}
+            onClick={onEnviar}
+            disabled={!puedeEnviar}
+            className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-white transition-all ${
+              puedeEnviar ? 'bg-[#1B2A4A] hover:bg-[#243761]' : 'bg-gray-400 cursor-not-allowed'
+            }`}
+          >
+            <Send className="w-5 h-5" />
+            {estado === 'RequiereSubsanacion' ? 'Reenviar a PRODHAB' : 'Enviar a PRODHAB'}
+          </motion.button>
+          {!puedeEnviar && (
+            <p className="text-xs text-amber-600 mt-2 text-center">
+              Completa todos los pasos obligatorios para poder enviar.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Contacto PRODHAB */}
       <div className="bg-primary-50 border border-primary-300 rounded-lg p-4 text-xs text-primary-800">

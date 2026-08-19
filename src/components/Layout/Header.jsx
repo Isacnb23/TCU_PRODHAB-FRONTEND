@@ -7,12 +7,16 @@
  */
 
 // Logo oficial PRODHAB en blanco (PNG transparente, resuelto por Vite)
-import logoProdhab from '../../assets/logos/Logo_Prodhab_Blanco_PNG.png';
+import logoProdhab from '../../assets/logos/Logo_Prodhab_Blanco_Dorado_PNG.png';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Header() {
+  const { user, logout } = useAuth();
+
   return (
     <header
-      className="h-16 flex-shrink-0 border-b-2 border-[#C9A84C]"
+      className="relative h-16 flex-shrink-0 border-b-2 border-[#C9A84C]"
       style={{ background: 'linear-gradient(to right, #1B2A4A, #243761)' }}
     >
       <div className="h-full max-w-full mx-auto px-6 flex items-center justify-between">
@@ -21,20 +25,36 @@ export default function Header() {
           <img
             src={logoProdhab}
             alt="PRODHAB - Agencia de Protección de Datos de los Habitantes"
-            className="h-8 w-auto"
+            className="h-16 w-auto object-contain"
           />
-          <div className="leading-tight">
-            <p className="text-xl font-bold text-white">PRODHAB</p>
-            <p className="text-xs text-white/60">
-              Sistema Web de Protocolos de Actuación
-            </p>
-          </div>
         </div>
 
-        {/* Badge Ley 8968 */}
-        <span className="bg-white/10 border border-white/20 text-white text-xs px-3 py-1 rounded-full">
-          Ley 8968
-        </span>
+        {/* Texto centrado absolutamente en el header */}
+        <div className="absolute left-1/2 -translate-x-1/2 text-center">
+          <p className="text-white text-sm">Sistema Web de Protocolos de Actuación</p>
+          <p className="text-[#C9A84C] text-xs font-medium">Ley 8968 · Protección de Datos</p>
+        </div>
+
+        {/* Usuario + Cerrar sesión */}
+        <div className="flex items-center gap-4">
+          {user?.rol === 'Admin' && (
+            <Link
+              to="/revision"
+              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded px-3 py-1 hover:bg-[#C9A84C]/10 transition-colors"
+            >
+              Revisión
+            </Link>
+          )}
+          {user && <span className="text-white/70 text-xs hidden sm:inline">{user.nombre || user.email}</span>}
+          <button
+            type="button"
+            onClick={logout}
+            className="text-xs text-white border border-white/30 rounded px-3 py-1 hover:bg-white/10 transition-colors"
+          >
+            Cerrar sesión
+          </button>
+          <p className="text-white/50 text-xs">v1.0.0 | 2026</p>
+        </div>
       </div>
     </header>
   );

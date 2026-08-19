@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Building2,
   Database,
@@ -35,12 +35,15 @@ const PASOS = [
 
 export default function Sidebar({ currentStep, setCurrentStep }) {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const handleStepClick = (stepId) => {
     // Solo permitir ir a pasos anteriores
     if (stepId < currentStep) {
       setCurrentStep(stepId);
-      navigate('/');
+      // El wizard ahora vive en /expedientes/:id; mantenerse ahí en vez de
+      // navegar a "/" (que ya no existe como ruta del wizard).
+      if (id) navigate(`/expedientes/${id}`);
     }
   };
 
