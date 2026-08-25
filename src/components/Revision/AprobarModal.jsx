@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 
-export default function AprobarModal({ onClose, onConfirmar }) {
-  const [numeroExpediente, setNumeroExpediente] = useState('');
+export default function AprobarModal({ numeroInicial = '', onClose, onConfirmar }) {
+  // Precargado con la sugerencia del backend (si llegó a tiempo), pero sigue siendo
+  // un input de texto normal: el Admin puede borrarlo y escribir cualquier otro número.
+  const [numeroExpediente, setNumeroExpediente] = useState(numeroInicial);
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
 

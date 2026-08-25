@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, ShieldAlert } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
+import CampoObservacion from '../Wizard/CampoObservacion';
 
 /**
  * Step3_Amenazas.jsx - Paso 3: Evaluación de Amenazas
@@ -74,15 +75,26 @@ const AMBITOS = [
   },
 ];
 
-export default function Step3_Amenazas({ data = {}, onChange }) {
+export default function Step3_Amenazas({ data = {}, onChange, subsanacion }) {
   const [respuestas, setRespuestas] = useState(
     data.respuestas || {}
   );
-  const [expandidos, setExpandidos] = useState({
-    1: true,
-    2: false,
-    3: false,
-    4: false,
+  // Ámbito 1 abierto por defecto; además, cualquier ámbito con una
+  // observación pendiente del Admin se abre automáticamente para que el
+  // usuario la vea sin tener que expandir manualmente cada uno.
+  const [expandidos, setExpandidos] = useState(() => {
+    const ambitosObservados = new Set(
+      (subsanacion?.observaciones || [])
+        .map((o) => /^ambito_(\d+)_q_\d+$/.exec(o.campo)?.[1])
+        .filter(Boolean)
+        .map(Number)
+    );
+    return {
+      1: true,
+      2: ambitosObservados.has(2),
+      3: ambitosObservados.has(3),
+      4: ambitosObservados.has(4),
+    };
   });
 
   useEffect(() => {
@@ -283,6 +295,7 @@ export default function Step3_Amenazas({ data = {}, onChange }) {
                               ✗ NO
                             </motion.button>
                           </div>
+                          <CampoObservacion campo={clave} {...subsanacion} />
                         </div>
                       );
                     })}

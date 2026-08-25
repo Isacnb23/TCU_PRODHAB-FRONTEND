@@ -1,23 +1,14 @@
 import { CheckCircle2, Circle, MessageSquareWarning } from 'lucide-react';
 import CampoPaso from './CampoPaso';
+import ObservarCampo from './ObservarCampo';
 import { AMBITOS_AMENAZAS, LABELS_PASO_1, humanizarClave } from '../../utils/revisionDisplay';
-
-function formatFechaHora(fecha) {
-  if (!fecha) return '';
-  return new Date(fecha).toLocaleString('es-CR', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 // Paso 3 guarda { respuestas: { ambito_1_q_1: 'si'|'no', ... } } (Step3_Amenazas.jsx
 // guarda los valores en minúscula): se agrupa por ámbito y se muestra la pregunta real
 // (ver AMBITOS_AMENAZAS), no la clave. Se compara sin distinguir mayúsculas por si el
-// dato viniera en otro casing.
-function ContenidoAmenazas({ datos }) {
+// dato viniera en otro casing. La clave `ambito_{id}_q_{indice}` es también el `campo`
+// que se envía al backend al observar una pregunta puntual.
+function ContenidoAmenazas({ paso, datos, observacionesPrevias, observacionesNuevasPaso, subsanaciones, expedienteId, onMarcarObservacion, onQuitarObservacion, puedeObservar }) {
   const respuestas = datos?.respuestas || {};
 
   if (Object.keys(respuestas).length === 0) {
@@ -29,25 +20,41 @@ function ContenidoAmenazas({ datos }) {
       {AMBITOS_AMENAZAS.map((ambito) => (
         <div key={ambito.id}>
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{ambito.nombre}</p>
-          <ul className="text-sm text-gray-700 space-y-1">
+          <ul className="text-sm text-gray-700 space-y-2">
             {ambito.preguntas.map((pregunta, i) => {
               const clave = `ambito_${ambito.id}_q_${i + 1}`;
               const respuesta = respuestas[clave];
               const respuestaNorm = typeof respuesta === 'string' ? respuesta.toUpperCase() : respuesta;
               return (
-                <li key={clave} className="flex items-start gap-2">
-                  <span
-                    className={`mt-0.5 inline-block w-9 flex-shrink-0 text-xs font-semibold text-center rounded px-1 ${
-                      respuestaNorm === 'SI'
-                        ? 'bg-green-50 text-green-700'
-                        : respuestaNorm === 'NO'
-                        ? 'bg-red-50 text-red-700'
-                        : 'bg-gray-100 text-gray-400'
-                    }`}
-                  >
-                    {respuestaNorm || '—'}
-                  </span>
-                  <span>{pregunta}</span>
+                <li key={clave}>
+                  <div className="flex items-start gap-2">
+                    <span
+                      className={`mt-0.5 inline-block w-9 flex-shrink-0 text-xs font-semibold text-center rounded px-1 ${
+                        respuestaNorm === 'SI'
+                          ? 'bg-green-50 text-green-700'
+                          : respuestaNorm === 'NO'
+                          ? 'bg-red-50 text-red-700'
+                          : 'bg-gray-100 text-gray-400'
+                      }`}
+                    >
+                      {respuestaNorm || '—'}
+                    </span>
+                    <span>{pregunta}</span>
+                  </div>
+                  <div className="pl-11">
+                    <ObservarCampo
+                      paso={paso}
+                      campo={clave}
+                      anteriores={observacionesPrevias.filter((o) => o.campo === clave)}
+                      valorNuevo={observacionesNuevasPaso[clave]}
+                      subsanaciones={subsanaciones}
+                      expedienteId={expedienteId}
+                      onGuardar={onMarcarObservacion}
+                      onQuitar={onQuitarObservacion}
+                      puedeObservar={puedeObservar}
+                      compact
+                    />
+                  </div>
                 </li>
               );
             })}
@@ -58,7 +65,7 @@ function ContenidoAmenazas({ datos }) {
   );
 }
 
-function ContenidoGenerico({ paso, datos }) {
+function ContenidoGenerico({ paso, datos, observacionesPrevias, observacionesNuevasPaso, subsanaciones, expedienteId, onMarcarObservacion, onQuitarObservacion, puedeObservar }) {
   const claves = Object.keys(datos || {}).sort((a, b) => a.localeCompare(b));
 
   if (claves.length === 0) {
@@ -69,7 +76,22 @@ function ContenidoGenerico({ paso, datos }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
       {claves.map((clave) => {
         const etiqueta = paso === 1 ? LABELS_PASO_1[clave] || humanizarClave(clave) : humanizarClave(clave);
-        return <CampoPaso key={clave} etiqueta={etiqueta} valor={datos[clave]} />;
+        return (
+          <CampoPaso
+            key={clave}
+            paso={paso}
+            etiqueta={etiqueta}
+            valor={datos[clave]}
+            campo={clave}
+            observacionesPrevias={observacionesPrevias}
+            observacionesNuevasPaso={observacionesNuevasPaso}
+            subsanaciones={subsanaciones}
+            expedienteId={expedienteId}
+            onMarcarObservacion={onMarcarObservacion}
+            onQuitarObservacion={onQuitarObservacion}
+            puedeObservar={puedeObservar}
+          />
+        );
       })}
     </div>
   );
@@ -81,11 +103,15 @@ export default function PasoCard({
   datos,
   completado,
   observacionesPrevias,
-  valorObservacion,
-  onChangeObservacion,
+  observacionesNuevasPaso,
+  subsanaciones,
+  expedienteId,
+  onMarcarObservacion,
+  onQuitarObservacion,
   puedeObservar,
 }) {
-  const tieneObservacion = observacionesPrevias.length > 0;
+  const tieneObservacionNueva = Object.values(observacionesNuevasPaso || {}).some((t) => (t || '').trim().length > 0);
+  const tieneObservacion = observacionesPrevias.length > 0 || tieneObservacionNueva;
 
   return (
     <div
@@ -117,43 +143,32 @@ export default function PasoCard({
       </div>
 
       <div className="px-5 py-4">
-        {paso === 3 ? <ContenidoAmenazas datos={datos} /> : <ContenidoGenerico paso={paso} datos={datos} />}
-      </div>
-
-      {observacionesPrevias.length > 0 && (
-        <div className="px-5 pb-4 space-y-2">
-          {observacionesPrevias.map((obs) => (
-            <div
-              key={obs.id}
-              className="flex items-start gap-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2"
-            >
-              <MessageSquareWarning className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <div>
-                <p>
-                  <span className="font-semibold">Observación anterior:</span> {obs.texto}
-                </p>
-                <p className="text-xs text-amber-600 mt-0.5">{formatFechaHora(obs.fechaCreacion)}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {puedeObservar && (
-        <div className="px-5 pb-5">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-            Observación para este paso (opcional)
-          </label>
-          <textarea
-            value={valorObservacion}
-            onChange={(e) => onChangeObservacion(e.target.value)}
-            rows={2}
-            maxLength={2000}
-            placeholder="Ej: Falta detallar el diagrama entidad-relación..."
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]"
+        {paso === 3 ? (
+          <ContenidoAmenazas
+            paso={paso}
+            datos={datos}
+            observacionesPrevias={observacionesPrevias}
+            observacionesNuevasPaso={observacionesNuevasPaso}
+            subsanaciones={subsanaciones}
+            expedienteId={expedienteId}
+            onMarcarObservacion={onMarcarObservacion}
+            onQuitarObservacion={onQuitarObservacion}
+            puedeObservar={puedeObservar}
           />
-        </div>
-      )}
+        ) : (
+          <ContenidoGenerico
+            paso={paso}
+            datos={datos}
+            observacionesPrevias={observacionesPrevias}
+            observacionesNuevasPaso={observacionesNuevasPaso}
+            subsanaciones={subsanaciones}
+            expedienteId={expedienteId}
+            onMarcarObservacion={onMarcarObservacion}
+            onQuitarObservacion={onQuitarObservacion}
+            puedeObservar={puedeObservar}
+          />
+        )}
+      </div>
     </div>
   );
 }

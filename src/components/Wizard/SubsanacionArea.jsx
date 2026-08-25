@@ -13,8 +13,9 @@ function formatFechaHora(fecha) {
   });
 }
 
-// Sección "Subsanación de este paso": lista lo ya adjuntado y permite adjuntar
-// una nueva justificación/archivo para el paso observado actual.
+// Sección "Subsanar esta observación": responde a UNA observación puntual
+// (paso + campo), no al paso completo. Lista lo ya adjuntado PARA ESE CAMPO
+// y permite adjuntar una nueva justificación/archivo para él.
 export default function SubsanacionArea({ expedienteId, paso, campo, subsanaciones, onCambio }) {
   const [texto, setTexto] = useState('');
   const [archivo, setArchivo] = useState(null);
@@ -22,7 +23,7 @@ export default function SubsanacionArea({ expedienteId, paso, campo, subsanacion
   const [error, setError] = useState('');
   const [eliminandoId, setEliminandoId] = useState(null);
 
-  const delPaso = subsanaciones.filter((s) => s.paso === paso);
+  const delPaso = subsanaciones.filter((s) => s.paso === paso && s.campo === campo);
   const puedeAdjuntar = texto.trim().length > 0 || !!archivo;
 
   async function handleAdjuntar() {
@@ -60,9 +61,9 @@ export default function SubsanacionArea({ expedienteId, paso, campo, subsanacion
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-4 bg-white rounded-2xl border border-gray-100 p-6">
-      <h3 className="text-sm font-bold text-[#1B2A4A] uppercase tracking-wide mb-3">
-        Subsanación de este paso
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <h3 className="text-xs font-bold text-[#1B2A4A] uppercase tracking-wide mb-3">
+        Subsanar esta observación
       </h3>
 
       {delPaso.length > 0 && (

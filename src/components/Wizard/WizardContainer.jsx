@@ -5,10 +5,10 @@ import { AlertTriangle, Info } from 'lucide-react';
 import StepIndicator from './StepIndicator';
 import NavigationButtons from './NavigationButtons';
 import ObservacionesResumen from './ObservacionesResumen';
-import SubsanacionArea from './SubsanacionArea';
+import CampoObservacion from './CampoObservacion';
 import * as expedienteService from '../../services/expedienteService';
 import { extraerDatosPaso } from '../../utils/pasoMapper';
-import { PASO_TITULOS } from '../../utils/revisionDisplay';
+import { tieneCampoConocido } from '../../utils/camposConocidos';
 import Step1_General from '../Forms/Step1_General';
 import Step2_Inventario from '../Forms/Step2_Inventario';
 import Step3_Amenazas from '../Forms/Step3_Amenazas';
@@ -91,7 +91,15 @@ export default function WizardContainer({
   const CurrentStepComponent = STEPS_COMPONENTS[currentStep - 1];
 
   const observacionesDelPaso = observaciones.filter((o) => o.paso === currentStep);
-  const hayAreaSubsanacion = estado === 'RequiereSubsanacion' && observacionesDelPaso.length > 0;
+  // Matcheadas: el Step actual sabe ubicarlas junto a su campo real (ver
+  // camposConocidos.js) y ya se muestran ahí, junto con su propio bloque de
+  // subsanación — no repetir su texto completo acá para no duplicarlo.
+  // Sin match: no hay forma de anclarlas a un campo puntual del formulario,
+  // así que degradan con gracia mostrando el texto completo + su propio
+  // bloque de subsanación acá mismo, a nivel de paso.
+  const observacionesMatcheadas = observacionesDelPaso.filter((o) => tieneCampoConocido(currentStep, o.campo));
+  const observacionesSinMatch = observacionesDelPaso.filter((o) => !tieneCampoConocido(currentStep, o.campo));
+  const camposSinMatch = [...new Set(observacionesSinMatch.map((o) => o.campo))];
 
   /**
    * Maneja cambios de datos en el paso actual.
@@ -255,32 +263,19 @@ export default function WizardContainer({
           className="max-w-4xl mx-auto bg-white rounded-2xl border border-gray-100 p-8"
           style={{ boxShadow: '0 4px 24px rgba(27,42,74,0.08)' }}
         >
-          {/* Banner con la(s) observación(es) del Admin para el paso actual: visible
-              siempre que existan, para dar contexto mientras el usuario corrige. */}
-          {observacionesDelPaso.length > 0 && (
-            <div className="mb-6 space-y-2">
-              {observacionesDelPaso.map((obs) => (
-                <div
-                  key={obs.id}
-                  className="flex items-start gap-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3"
-                >
-                  <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p>
-                      <span className="font-semibold">Observación del Admin:</span> {obs.texto}
-                    </p>
-                    <p className="text-xs text-amber-600 mt-0.5">
-                      {new Date(obs.fechaCreacion).toLocaleString('es-CR', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))}
+          {/* Banner de nivel de paso: ahora solo un resumen corto — el texto
+              completo de cada observación ya se muestra una sola vez, junto a
+              su campo (más abajo, dentro del Step, o en el bloque de fallback
+              después del Step si no se pudo anclar a uno puntual). */}
+          {observacionesMatcheadas.length > 0 && (
+            <div className="mb-6 flex items-center gap-2 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-4 py-3">
+              <AlertTriangle size={16} className="flex-shrink-0" />
+              <p>
+                Este paso tiene {observacionesMatcheadas.length}{' '}
+                observación{observacionesMatcheadas.length === 1 ? '' : 'es'} pendiente
+                {observacionesMatcheadas.length === 1 ? '' : 's'}, marcada
+                {observacionesMatcheadas.length === 1 ? '' : 's'} junto al campo correspondiente más abajo.
+              </p>
             </div>
           )}
 
@@ -298,21 +293,38 @@ export default function WizardContainer({
               puedeEnviar={puedeEnviar}
               readOnly={readOnly}
               estado={estado}
+              subsanacion={{
+                paso: currentStep,
+                observaciones: observacionesDelPaso,
+                subsanaciones,
+                expedienteId,
+                estado,
+                onCambio: onSubsanacionesChange,
+              }}
             />
           </fieldset>
+
+          {/* Observaciones que no se pudieron anclar a un campo puntual del
+              formulario: su propio bloque de subsanación, a nivel de paso
+              (fallback, no pierde la observación). */}
+          {estado === 'RequiereSubsanacion' && camposSinMatch.length > 0 && (
+            <div className="mt-6 space-y-3">
+              {camposSinMatch.map((campoObs) => (
+                <CampoObservacion
+                  key={campoObs}
+                  paso={currentStep}
+                  campo={campoObs}
+                  observaciones={observacionesDelPaso}
+                  subsanaciones={subsanaciones}
+                  expedienteId={expedienteId}
+                  estado={estado}
+                  onCambio={onSubsanacionesChange}
+                />
+              ))}
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
-
-      {/* Subsanación de este paso: solo si está observado y el expediente admite corrección */}
-      {hayAreaSubsanacion && (
-        <SubsanacionArea
-          expedienteId={expedienteId}
-          paso={currentStep}
-          campo={PASO_TITULOS[currentStep]}
-          subsanaciones={subsanaciones}
-          onCambio={onSubsanacionesChange}
-        />
-      )}
 
       {/* Aviso no intrusivo: el guardado en el servidor falló, pero los datos
           están a salvo en localStorage y el usuario puede seguir avanzando */}

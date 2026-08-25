@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FilePlus2, Inbox, AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
 import NuevoExpedienteModal from './NuevoExpedienteModal';
+import { useAuth } from '../../context/AuthContext';
+import { etiquetaEstado } from '../../utils/estadoLabel';
 
 const ESTADO_BADGE = {
   Borrador: 'bg-gray-100 text-gray-700 border-gray-300',
@@ -20,6 +22,7 @@ function formatFecha(fecha) {
 export default function MisExpedientes() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [expedientes, setExpedientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -156,7 +159,7 @@ export default function MisExpedientes() {
                         ESTADO_BADGE[exp.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
                       }`}
                     >
-                      {exp.estado}
+                      {etiquetaEstado(exp.estado, user?.rol)}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-gray-600">Paso {exp.pasoActual} de 9</td>

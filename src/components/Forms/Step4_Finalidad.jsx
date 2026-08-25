@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trash2, Plus, Target } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
+import CampoObservacion from '../Wizard/CampoObservacion';
 
 /**
  * Sugerencias frecuentes de nombres de datos (para el datalist).
@@ -62,7 +63,7 @@ const BASES_LEGALES = [
   'Otra',
 ];
 
-export default function Step4_Finalidad({ data = {}, onChange }) {
+export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
   const [formData, setFormData] = useState({
     finalidad: data.finalidad || '',
     baseLegal: data.baseLegal || '',
@@ -155,6 +156,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
           rows="4"
           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
         />
+        <CampoObservacion campo="finalidad" {...subsanacion} />
       </div>
 
       {/* Base Legal */}
@@ -179,6 +181,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
             </option>
           ))}
         </select>
+        <CampoObservacion campo="baseLegal" {...subsanacion} />
       </div>
 
       {/* Tabla de datos recopilados */}
@@ -219,7 +222,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                   </td>
                 </tr>
               ) : (
-                formData.datosRecopilados.map((dato) => (
+                formData.datosRecopilados.map((dato, idx) => (
                   <motion.tr
                     key={dato.id}
                     initial={{ opacity: 0 }}
@@ -242,6 +245,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                         placeholder="Ej: Nombre completo"
                         className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       />
+                      <CampoObservacion campo={`datosRecopilados[${idx}].nombre`} {...subsanacion} />
                     </td>
 
                     {/* Tipo de dato */}
@@ -264,6 +268,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                           </option>
                         ))}
                       </select>
+                      <CampoObservacion campo={`datosRecopilados[${idx}].tipo`} {...subsanacion} />
                     </td>
 
                     {/* Obligatorio / Opcional */}
@@ -284,6 +289,7 @@ export default function Step4_Finalidad({ data = {}, onChange }) {
                         </option>
                         <option value="opcional">Opcional</option>
                       </select>
+                      <CampoObservacion campo={`datosRecopilados[${idx}].obligatorio`} {...subsanacion} />
                     </td>
 
                     {/* Acciones */}

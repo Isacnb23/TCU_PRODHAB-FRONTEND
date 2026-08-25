@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trash2, Plus, BarChart3 } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
+import CampoObservacion from '../Wizard/CampoObservacion';
 
 /**
  * Step6_Riesgos.jsx - Paso 6: Gestión de Riesgos
@@ -61,7 +62,7 @@ function obtenerNivel(nri) {
   return { nivel: 'Muy Alto', color: 'bg-red-100 text-red-800' };
 }
 
-export default function Step6_Riesgos({ data = {}, onChange }) {
+export default function Step6_Riesgos({ data = {}, onChange, subsanacion }) {
   const [riesgos, setRiesgos] = useState(data.riesgos || []);
   const [showMatriz, setShowMatriz] = useState(false);
   const [mostrarSugeridos, setMostrarSugeridos] = useState(false);
@@ -297,7 +298,7 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
                 </td>
               </tr>
             ) : (
-              riesgos.map((riesgo) => {
+              riesgos.map((riesgo, idx) => {
                 const nri = calcularNRI(
                   riesgo.probabilidad,
                   riesgo.consecuencia
@@ -326,6 +327,7 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
                         placeholder="Ej: Acceso no autorizado a BD"
                         className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       />
+                      <CampoObservacion campo={`riesgos[${idx}].descripcion`} {...subsanacion} />
                     </td>
 
                     {/* Probabilidad */}
@@ -348,6 +350,7 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
                           </option>
                         ))}
                       </select>
+                      <CampoObservacion campo={`riesgos[${idx}].probabilidad`} {...subsanacion} />
                     </td>
 
                     {/* Consecuencia */}
@@ -370,6 +373,7 @@ export default function Step6_Riesgos({ data = {}, onChange }) {
                           </option>
                         ))}
                       </select>
+                      <CampoObservacion campo={`riesgos[${idx}].consecuencia`} {...subsanacion} />
                     </td>
 
                     {/* NRI (automático) */}

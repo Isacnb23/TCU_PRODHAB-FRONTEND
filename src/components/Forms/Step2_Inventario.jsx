@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trash2, Plus, Database } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
+import CampoObservacion from '../Wizard/CampoObservacion';
 
 /**
  * Step2_Inventario.jsx - Paso 2: Inventario de Bases de Datos
@@ -50,7 +51,7 @@ const UBICACIONES = [
 ];
 const UBICACIONES_FIJAS = UBICACIONES.slice(0, -1); // sin "Otro..."
 
-export default function Step2_Inventario({ data = {}, onChange }) {
+export default function Step2_Inventario({ data = {}, onChange, subsanacion }) {
   const [bases, setBases] = useState(data.bases || []);
   const [errors, setErrors] = useState({});
   // Filas cuyo campo Ubicación está en modo "Otro..." (texto libre)
@@ -206,6 +207,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                           : 'border-gray-300'
                       } focus:ring-2 focus:ring-primary-500 focus:outline-none`}
                     />
+                    <CampoObservacion campo={`bases[${idx}].nombre`} {...subsanacion} />
                   </td>
 
                   {/* Descripción */}
@@ -219,6 +221,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                       placeholder="Datos de pacientes..."
                       className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
+                    <CampoObservacion campo={`bases[${idx}].descripcion`} {...subsanacion} />
                   </td>
 
                   {/* Gestor BD */}
@@ -241,6 +244,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         </option>
                       ))}
                     </select>
+                    <CampoObservacion campo={`bases[${idx}].gestor`} {...subsanacion} />
                   </td>
 
                   {/* Versión */}
@@ -254,6 +258,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                       placeholder="8.0.32"
                       className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
+                    <CampoObservacion campo={`bases[${idx}].version`} {...subsanacion} />
                   </td>
 
                   {/* Ubicación (dropdown con opción "Otro...") */}
@@ -281,6 +286,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         className="mt-1 w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       />
                     )}
+                    <CampoObservacion campo={`bases[${idx}].ubicacion`} {...subsanacion} />
                   </td>
 
                   {/* Tipo */}
@@ -303,6 +309,7 @@ export default function Step2_Inventario({ data = {}, onChange }) {
                         </option>
                       ))}
                     </select>
+                    <CampoObservacion campo={`bases[${idx}].tipo`} {...subsanacion} />
                   </td>
 
                   {/* Acciones */}

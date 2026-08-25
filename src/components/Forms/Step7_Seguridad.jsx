@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trash2, Plus, Shield, Lock } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
+import CampoObservacion from '../Wizard/CampoObservacion';
 
 /**
  * Step7_Seguridad.jsx - Paso 7: Medidas de Seguridad y Controles
@@ -86,7 +87,7 @@ const CONTROLES_SUGERIDOS = [
   },
 ];
 
-export default function Step7_Seguridad({ data = {}, onChange }) {
+export default function Step7_Seguridad({ data = {}, onChange, subsanacion }) {
   const [controles, setControles] = useState(data.controles || []);
   const [mostrarSugeridos, setMostrarSugeridos] = useState(false);
 
@@ -263,7 +264,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                 </td>
               </tr>
             ) : (
-              controles.map((control) => (
+              controles.map((control, idx) => (
                 <motion.tr
                   key={control.id}
                   initial={{ opacity: 0 }}
@@ -290,6 +291,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                         </option>
                       ))}
                     </select>
+                    <CampoObservacion campo={`controles[${idx}].tipo`} {...subsanacion} />
                   </td>
 
                   {/* Descripción */}
@@ -307,6 +309,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                       placeholder="Ej: Encriptación SSL/TLS"
                       className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
+                    <CampoObservacion campo={`controles[${idx}].descripcion`} {...subsanacion} />
                   </td>
 
                   {/* Estado */}
@@ -329,6 +332,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                         </option>
                       ))}
                     </select>
+                    <CampoObservacion campo={`controles[${idx}].estado`} {...subsanacion} />
                   </td>
 
                   {/* Responsable */}
@@ -346,6 +350,7 @@ export default function Step7_Seguridad({ data = {}, onChange }) {
                       placeholder="Nombre"
                       className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                     />
+                    <CampoObservacion campo={`controles[${idx}].responsable`} {...subsanacion} />
                   </td>
 
                   {/* Acciones */}

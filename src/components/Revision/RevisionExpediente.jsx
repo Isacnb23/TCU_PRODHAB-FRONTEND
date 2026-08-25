@@ -6,6 +6,8 @@ import * as subsanacionService from '../../services/subsanacionService';
 import PasoCard from './PasoCard';
 import AprobarModal from './AprobarModal';
 import { PASO_TITULOS, parsearDatosJson } from '../../utils/revisionDisplay';
+import { useAuth } from '../../context/AuthContext';
+import { etiquetaEstado } from '../../utils/estadoLabel';
 
 const ESTADO_BADGE = {
   Borrador: 'bg-gray-100 text-gray-700 border-gray-300',
@@ -44,14 +46,18 @@ function formatFechaHora(fecha) {
 export default function RevisionExpediente() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [expediente, setExpediente] = useState(null);
   const [subsanaciones, setSubsanaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [observacionesInput, setObservacionesInput] = useState({});
+  // Observaciones marcadas por CAMPO durante esta sesión de revisión, antes de
+  // enviarlas: { [paso]: { [campo]: texto } }.
+  const [observacionesNuevas, setObservacionesNuevas] = useState({});
   const [modalAprobarAbierto, setModalAprobarAbierto] = useState(false);
+  const [numeroSugerido, setNumeroSugerido] = useState('');
   const [enviandoSubsanacion, setEnviandoSubsanacion] = useState(false);
   const [errorAccion, setErrorAccion] = useState('');
 
@@ -96,10 +102,38 @@ export default function RevisionExpediente() {
   const completados = pasos.filter((p) => p.completado).length;
   const progresoPct = pasos.length ? (completados / pasos.length) * 100 : 0;
 
-  const hayObservacionesEscritas = Object.values(observacionesInput).some((v) => (v || '').trim().length > 0);
+  const hayObservacionesEscritas = Object.values(observacionesNuevas).some((camposPaso) =>
+    Object.values(camposPaso || {}).some((v) => (v || '').trim().length > 0)
+  );
 
-  function handleChangeObservacion(paso, texto) {
-    setObservacionesInput((prev) => ({ ...prev, [paso]: texto }));
+  function handleMarcarObservacion(paso, campo, texto) {
+    setObservacionesNuevas((prev) => ({
+      ...prev,
+      [paso]: { ...(prev[paso] || {}), [campo]: texto },
+    }));
+  }
+
+  function handleQuitarObservacion(paso, campo) {
+    setObservacionesNuevas((prev) => {
+      const camposPaso = { ...(prev[paso] || {}) };
+      delete camposPaso[campo];
+      return { ...prev, [paso]: camposPaso };
+    });
+  }
+
+  // Precarga el campo de número del modal con la sugerencia del backend antes de abrirlo
+  // (para que llegue como valor INICIAL, no como una actualización tardía del input). Si
+  // falla, el modal igual abre con el campo vacío — mejora de UX, no dependencia dura de Aprobar.
+  async function handleAbrirAprobar() {
+    let sugerido = '';
+    try {
+      const respuesta = await expedienteService.sugerirNumero(id);
+      sugerido = respuesta?.numeroSugerido || '';
+    } catch {
+      // Silencioso: el modal abre igual, con el campo vacío, y el Admin escribe el número a mano.
+    }
+    setNumeroSugerido(sugerido);
+    setModalAprobarAbierto(true);
   }
 
   async function handleAprobarConfirmar(numeroExpediente) {
@@ -108,9 +142,11 @@ export default function RevisionExpediente() {
   }
 
   async function handleSolicitarSubsanacion() {
-    const observaciones = Object.entries(observacionesInput)
-      .filter(([, texto]) => (texto || '').trim().length > 0)
-      .map(([paso, texto]) => ({ paso: Number(paso), texto: texto.trim() }));
+    const observaciones = Object.entries(observacionesNuevas).flatMap(([paso, camposPaso]) =>
+      Object.entries(camposPaso || {})
+        .filter(([, texto]) => (texto || '').trim().length > 0)
+        .map(([campo, texto]) => ({ paso: Number(paso), campo, texto: texto.trim() }))
+    );
 
     if (observaciones.length === 0) return;
 
@@ -183,7 +219,7 @@ export default function RevisionExpediente() {
                 ESTADO_BADGE[expediente.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
               }`}
             >
-              {expediente.estado}
+              {etiquetaEstado(expediente.estado, user?.rol)}
             </span>
           </div>
 
@@ -230,8 +266,11 @@ export default function RevisionExpediente() {
             datos={p.datos}
             completado={p.completado}
             observacionesPrevias={p.observacionesPrevias}
-            valorObservacion={observacionesInput[p.paso] || ''}
-            onChangeObservacion={(texto) => handleChangeObservacion(p.paso, texto)}
+            observacionesNuevasPaso={observacionesNuevas[p.paso] || {}}
+            subsanaciones={subsanaciones}
+            expedienteId={id}
+            onMarcarObservacion={(campo, texto) => handleMarcarObservacion(p.paso, campo, texto)}
+            onQuitarObservacion={(campo) => handleQuitarObservacion(p.paso, campo)}
             puedeObservar={puedeActuar}
           />
         ))}
@@ -305,7 +344,7 @@ export default function RevisionExpediente() {
               </button>
               <button
                 type="button"
-                onClick={() => setModalAprobarAbierto(true)}
+                onClick={handleAbrirAprobar}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 transition-all"
               >
                 <ShieldCheck className="w-4 h-4" />
@@ -315,14 +354,19 @@ export default function RevisionExpediente() {
           </div>
         ) : (
           <p className="text-sm text-gray-500">
-            Este expediente está en estado <span className="font-semibold text-gray-700">{expediente.estado}</span>:
+            Este expediente está en estado{' '}
+            <span className="font-semibold text-gray-700">{etiquetaEstado(expediente.estado, user?.rol)}</span>:
             no admite acciones de revisión en este momento.
           </p>
         )}
       </div>
 
       {modalAprobarAbierto && (
-        <AprobarModal onClose={() => setModalAprobarAbierto(false)} onConfirmar={handleAprobarConfirmar} />
+        <AprobarModal
+          numeroInicial={numeroSugerido}
+          onClose={() => setModalAprobarAbierto(false)}
+          onConfirmar={handleAprobarConfirmar}
+        />
       )}
     </div>
   );

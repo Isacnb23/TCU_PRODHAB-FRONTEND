@@ -32,3 +32,7 @@ export function solicitarSubsanacion(id, observaciones) {
 export function aprobar(id, numeroExpediente) {
   return apiPost(`/expedientes/${id}/aprobar`, { numeroExpediente });
 }
+
+export function sugerirNumero(id) {
+  return apiGet(`/expedientes/${id}/sugerir-numero`);
+}

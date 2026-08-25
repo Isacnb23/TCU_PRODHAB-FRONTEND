@@ -11,6 +11,7 @@ import logoProdhab from '../../assets/logos/Logo_Prodhab_Blanco_Dorado_PNG.png';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import NotificacionesBell from './NotificacionesBell';
 
 export default function Header({ mostrarVolverExpedientes = false }) {
   const { user, logout } = useAuth();
@@ -63,6 +64,7 @@ export default function Header({ mostrarVolverExpedientes = false }) {
               Usuarios
             </Link>
           )}
+          {user && <NotificacionesBell />}
           {user && <span className="text-white/70 text-xs hidden sm:inline">{user.nombre || user.email}</span>}
           <button
             type="button"

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, AlertCircle, ArrowLeftRight } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
+import CampoObservacion from '../Wizard/CampoObservacion';
 
 /**
  * Step5_Transferencia.jsx - Paso 5: Transferencias de Datos
@@ -42,7 +43,7 @@ const TIPOS_TRANSFERENCIA = [
   'Otra',
 ];
 
-export default function Step5_Transferencia({ data = {}, onChange }) {
+export default function Step5_Transferencia({ data = {}, onChange, subsanacion }) {
   const [formData, setFormData] = useState({
     realizaTransferencias: data.realizaTransferencias || false,
     transferencias: data.transferencias || [],
@@ -155,6 +156,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
             ✗ NO
           </motion.button>
         </div>
+        <CampoObservacion campo="realizaTransferencias" {...subsanacion} />
       </div>
 
       {/* Si responde SÍ, mostrar tabla */}
@@ -193,6 +195,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                 rows="3"
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
               />
+              <CampoObservacion campo="justificacionGeneral" {...subsanacion} />
             </div>
 
             {/* Tabla de transferencias */}
@@ -232,7 +235,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                       </td>
                     </tr>
                   ) : (
-                    formData.transferencias.map((trans) => (
+                    formData.transferencias.map((trans, idx) => (
                       <motion.tr
                         key={trans.id}
                         initial={{ opacity: 0 }}
@@ -259,6 +262,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                               </option>
                             ))}
                           </select>
+                          <CampoObservacion campo={`transferencias[${idx}].pais`} {...subsanacion} />
                         </td>
 
                         {/* Tipo */}
@@ -281,6 +285,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                               </option>
                             ))}
                           </select>
+                          <CampoObservacion campo={`transferencias[${idx}].tipo`} {...subsanacion} />
                         </td>
 
                         {/* Justificación */}
@@ -298,6 +303,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                             placeholder="Breve descripción"
                             className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                           />
+                          <CampoObservacion campo={`transferencias[${idx}].justificacion`} {...subsanacion} />
                         </td>
 
                         {/* Base legal */}
@@ -315,6 +321,7 @@ export default function Step5_Transferencia({ data = {}, onChange }) {
                             placeholder="Ej: Ley 8968"
                             className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                           />
+                          <CampoObservacion campo={`transferencias[${idx}].baseLegal`} {...subsanacion} />
                         </td>
 
                         {/* Acciones */}

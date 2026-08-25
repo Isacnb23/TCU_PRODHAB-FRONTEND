@@ -7,6 +7,7 @@ import Tooltip from '../Common/Tooltip';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
 import OptionalSection from '../Common/OptionalSection';
+import CampoObservacion from '../Wizard/CampoObservacion';
 import { Building2, AlertCircle } from 'lucide-react';
 
 /**
@@ -62,7 +63,7 @@ const VERSIONES_BD = {
   Otro: ['Otra...'],
 };
 
-export default function Step1_General({ data = {}, onChange }) {
+export default function Step1_General({ data = {}, onChange, subsanacion }) {
   const [formData, setFormData] = useState({
     entidad: data.entidad || '',
     nombreBD: data.nombreBD || '',
@@ -304,6 +305,7 @@ export default function Step1_General({ data = {}, onChange }) {
           {errors.entidad && touched.entidad && (
             <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.entidad}</p>
           )}
+          <CampoObservacion campo="entidad" {...subsanacion} />
         </div>
 
         {/* Año */}
@@ -319,6 +321,7 @@ export default function Step1_General({ data = {}, onChange }) {
             onChange={handleInputChange}
             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
           />
+          <CampoObservacion campo="ano" {...subsanacion} />
         </div>
 
         {/* Nombre Base de Datos */}
@@ -347,6 +350,7 @@ export default function Step1_General({ data = {}, onChange }) {
           {errors.nombreBD && touched.nombreBD && (
             <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.nombreBD}</p>
           )}
+          <CampoObservacion campo="nombreBD" {...subsanacion} />
         </div>
 
         {/* Responsable */}
@@ -375,6 +379,7 @@ export default function Step1_General({ data = {}, onChange }) {
           {errors.responsable && touched.responsable && (
             <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.responsable}</p>
           )}
+          <CampoObservacion campo="responsable" {...subsanacion} />
         </div>
 
         {/* Gestor BD */}
@@ -407,6 +412,7 @@ export default function Step1_General({ data = {}, onChange }) {
           {errors.gestorBD && touched.gestorBD && (
             <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.gestorBD}</p>
           )}
+          <CampoObservacion campo="gestorBD" {...subsanacion} />
         </div>
 
         {/* Versión BD (dropdown dependiente del gestor) */}
@@ -467,6 +473,7 @@ export default function Step1_General({ data = {}, onChange }) {
           {errors.versionBD && touched.versionBD && formData.gestorBD && (
             <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.versionBD}</p>
           )}
+          <CampoObservacion campo="versionBD" {...subsanacion} />
         </div>
 
         {/* Contacto (Email) */}
@@ -495,6 +502,7 @@ export default function Step1_General({ data = {}, onChange }) {
           {errors.contacto && touched.contacto && (
             <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.contacto}</p>
           )}
+          <CampoObservacion campo="contacto" {...subsanacion} />
         </div>
       </div>
 
@@ -515,6 +523,7 @@ export default function Step1_General({ data = {}, onChange }) {
               placeholder="Ej: TI, Recursos Humanos"
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
+            <CampoObservacion campo="area" {...subsanacion} />
           </div>
 
           {/* Fecha de creación */}
@@ -530,6 +539,7 @@ export default function Step1_General({ data = {}, onChange }) {
               onChange={handleInputChange}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
+            <CampoObservacion campo="fechaCreacion" {...subsanacion} />
           </div>
 
           {/* Cantidad de licencias */}
@@ -547,6 +557,7 @@ export default function Step1_General({ data = {}, onChange }) {
               placeholder="Ej: 5"
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
+            <CampoObservacion campo="cantidadLicencias" {...subsanacion} />
           </div>
 
           {/* Cantidad de usuarios */}
@@ -564,6 +575,7 @@ export default function Step1_General({ data = {}, onChange }) {
               placeholder="Ej: 20"
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
+            <CampoObservacion campo="cantidadUsuarios" {...subsanacion} />
           </div>
 
           {/* Alojamiento */}
@@ -583,6 +595,7 @@ export default function Step1_General({ data = {}, onChange }) {
               <option value="nube">Nube</option>
               <option value="hibrido">Híbrido</option>
             </select>
+            <CampoObservacion campo="alojamiento" {...subsanacion} />
           </div>
 
           {/* Acceso / Derechos */}
@@ -599,6 +612,7 @@ export default function Step1_General({ data = {}, onChange }) {
               placeholder="Ej: Solo personal autorizado de TI"
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
+            <CampoObservacion campo="acceso" {...subsanacion} />
           </div>
 
           {/* Mecanismo para ejercicio de derechos */}
@@ -615,6 +629,7 @@ export default function Step1_General({ data = {}, onChange }) {
               placeholder="Ej: Formulario en línea / Solicitud escrita al responsable"
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
+            <CampoObservacion campo="mecanismoDerechos" {...subsanacion} />
           </div>
         </div>
       </OptionalSection>
@@ -634,6 +649,7 @@ export default function Step1_General({ data = {}, onChange }) {
         {errors.diagramaER && (
           <p className="text-red-500 text-sm mt-1"><AlertCircle className="w-4 h-4 text-amber-500 inline mr-1" />{errors.diagramaER}</p>
         )}
+        <CampoObservacion campo="diagramaER" {...subsanacion} />
       </div>
 
       {/* Resumen */}

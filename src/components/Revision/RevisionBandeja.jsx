@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Inbox, AlertCircle, CheckCircle2, ClipboardCheck } from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
+import { useAuth } from '../../context/AuthContext';
+import { etiquetaEstado } from '../../utils/estadoLabel';
 
 const ESTADO_BADGE = {
   Borrador: 'bg-gray-100 text-gray-700 border-gray-300',
@@ -25,6 +27,7 @@ function formatFecha(fecha) {
 export default function RevisionBandeja() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [estado, setEstado] = useState('Enviado');
   const [expedientes, setExpedientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -125,7 +128,7 @@ export default function RevisionBandeja() {
                         ESTADO_BADGE[exp.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
                       }`}
                     >
-                      {exp.estado}
+                      {etiquetaEstado(exp.estado, user?.rol)}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-gray-500">{formatFecha(exp.fechaModificacion)}</td>

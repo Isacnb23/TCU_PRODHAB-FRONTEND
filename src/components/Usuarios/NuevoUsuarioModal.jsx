@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import * as usuarioService from '../../services/usuarioService';
+import { sugerirEmail } from '../../utils/sugerirEmail';
 
 export default function NuevoUsuarioModal({ onClose, onCreado }) {
   const [nombre, setNombre] = useState('');
@@ -9,6 +10,28 @@ export default function NuevoUsuarioModal({ onClose, onCreado }) {
   const [rol, setRol] = useState('Usuario');
   const [error, setError] = useState('');
   const [creando, setCreando] = useState(false);
+
+  // Email autogenerado a partir del Nombre, como sugerencia inicial editable (no una
+  // restricción): se sigue actualizando mientras el Admin no toque el campo Email a mano
+  // (o mientras lo que haya ahí siga siendo exactamente la última sugerencia).
+  const [emailEditadoManualmente, setEmailEditadoManualmente] = useState(false);
+  const [ultimaSugerencia, setUltimaSugerencia] = useState('');
+
+  function handleNombreChange(e) {
+    const valor = e.target.value;
+    setNombre(valor);
+
+    const sugerencia = sugerirEmail(valor);
+    if (!emailEditadoManualmente || email === ultimaSugerencia) {
+      setEmail(sugerencia);
+    }
+    setUltimaSugerencia(sugerencia);
+  }
+
+  function handleEmailChange(e) {
+    setEmail(e.target.value);
+    setEmailEditadoManualmente(true);
+  }
 
   const nombreValido = nombre.trim().length > 0;
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -50,7 +73,7 @@ export default function NuevoUsuarioModal({ onClose, onCreado }) {
             <input
               type="text"
               value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              onChange={handleNombreChange}
               placeholder="Nombre completo"
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]"
               disabled={creando}
@@ -62,7 +85,7 @@ export default function NuevoUsuarioModal({ onClose, onCreado }) {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               placeholder="correo@ejemplo.com"
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]"
               disabled={creando}
