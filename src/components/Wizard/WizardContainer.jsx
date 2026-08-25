@@ -57,6 +57,18 @@ export default function WizardContainer({
   observaciones = [],
   subsanaciones = [],
   onSubsanacionesChange = async () => {},
+  // Metadata del expediente (entidad, año, número asignado, fecha de envío) que
+  // Step9_Revision necesita para generar el nombre/portada del Excel una vez
+  // Aprobado. WizardPage debe pasarlo armado desde el expediente que ya tiene
+  // cargado, ej:
+  //   expedienteMeta={{
+  //     entidad: expediente.entidad,
+  //     anio: expediente.anio,
+  //     numeroExpediente: expediente.numeroExpediente,
+  //     estado: expediente.estado,
+  //     fechaEnvio: expediente.fechaEnvio,
+  //   }}
+  expedienteMeta = {},
 }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -84,7 +96,7 @@ export default function WizardContainer({
     6: false,
     7: false,
     8: false, // Step8_Adicionales se auto-valida como true en su useEffect
-    9: true,  // Último paso: botón "Descargar Excel" no depende de isValid
+    9: true,  // Último paso: las acciones (Excel/Enviar) no dependen de isValid
   });
 
   // Obtener componente actual
@@ -140,26 +152,13 @@ export default function WizardContainer({
    * Avanza al siguiente paso.
    * La validez la determina cada paso vía stepValidation[currentStep];
    * el botón "Siguiente" ya viene deshabilitado si el paso no es válido.
+   * NOTA: el paso 9 (último) ya no dispara nada acá — sus acciones reales
+   * (Descargar Excel, Enviar/Reenviar a PRODHAB) viven dentro de
+   * Step9_Revision y NavigationButtons no muestra botón primario en ese paso.
    */
   const handleNext = async () => {
     if (isLoading) return; // evita doble click / doble PUT mientras hay un guardado en vuelo
-
-    if (currentStep === TOTAL_STEPS) {
-      // Último paso - descargar Excel (sin conexión a backend en esta parte)
-      setIsLoading(true);
-      try {
-        // TODO: Implementar descarga de Excel
-        console.log('Descargando Excel...', formData);
-        // Simular delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        alert('✅ Excel descargado exitosamente');
-      } catch (error) {
-        alert('❌ Error al descargar Excel: ' + error.message);
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
+    if (currentStep === TOTAL_STEPS) return; // sin acción: ver nota arriba
 
     if (readOnly) {
       // Modo consulta: solo navegar, sin validar ni guardar nada.
@@ -293,6 +292,7 @@ export default function WizardContainer({
               puedeEnviar={puedeEnviar}
               readOnly={readOnly}
               estado={estado}
+              expedienteMeta={expedienteMeta}
               subsanacion={{
                 paso: currentStep,
                 observaciones: observacionesDelPaso,
@@ -343,7 +343,8 @@ export default function WizardContainer({
         </div>
       )}
 
-      {/* Botones de navegación */}
+      {/* Botones de navegación (sin botón primario en el paso 9: sus acciones
+          reales viven dentro de Step9_Revision) */}
       <NavigationButtons
         currentStep={currentStep}
         totalSteps={TOTAL_STEPS}

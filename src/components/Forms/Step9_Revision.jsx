@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Download, CheckCircle, XCircle, CheckCircle2, Send } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
+import { generarExcelProtocolo } from '../../utils/excelGenerator';
+import logoPrograma from '../../assets/Logo_Prodhab_Azul_Dorado_PNG-BhX8uBAh.png';
 
 /**
  * Step9_Revision.jsx - Paso 9: Revisión Final y Exportación
  *
  * Recibe el formData completo (todos los pasos) y muestra un resumen.
- * El botón "Descargar Excel" no depende de isValid.
+ * El botón "Descargar Excel" solo está disponible cuando estado === 'Aprobado'.
  */
 
-export default function Step9_Revision({ data = {}, onEnviar, puedeEnviar, readOnly, estado }) {
+export default function Step9_Revision({ data = {}, onEnviar, puedeEnviar, readOnly, estado, expedienteMeta }) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const g = data.step1_general || {};
@@ -25,12 +27,10 @@ export default function Step9_Revision({ data = {}, onEnviar, puedeEnviar, readO
   const descargarExcel = async () => {
     setIsGenerating(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      alert(
-        '✅ Excel descargado exitosamente!\n\nNota: La generación real de Excel se implementará con ExcelJS.'
-      );
+      await generarExcelProtocolo(data, expedienteMeta, logoPrograma);
     } catch (error) {
-      alert('❌ Error al descargar: ' + error.message);
+      alert('❌ Error al generar el protocolo: ' + error.message);
+      console.error(error);
     } finally {
       setIsGenerating(false);
     }
@@ -265,28 +265,34 @@ export default function Step9_Revision({ data = {}, onEnviar, puedeEnviar, readO
         </div>
       ))}
 
-      {/* Botón descargar */}
-      <motion.button
-        whileHover={!isGenerating ? { scale: 1.02 } : {}}
-        whileTap={!isGenerating ? { scale: 0.98 } : {}}
-        onClick={descargarExcel}
-        disabled={isGenerating}
-        className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-white transition-all ${
-          isGenerating ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-        }`}
-      >
-        {isGenerating ? (
-          <>
-            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-            Generando Excel...
-          </>
-        ) : (
-          <>
-            <Download className="w-5 h-5" />
-            Descargar Protocolo (Excel)
-          </>
-        )}
-      </motion.button>
+      {/* Botón descargar — solo disponible una vez Aprobado */}
+      {estado === 'Aprobado' ? (
+        <motion.button
+          whileHover={!isGenerating ? { scale: 1.02 } : {}}
+          whileTap={!isGenerating ? { scale: 0.98 } : {}}
+          onClick={descargarExcel}
+          disabled={isGenerating}
+          className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-white transition-all ${
+            isGenerating ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+          }`}
+        >
+          {isGenerating ? (
+            <>
+              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              Generando Excel...
+            </>
+          ) : (
+            <>
+              <Download className="w-5 h-5" />
+              Descargar Protocolo (Excel)
+            </>
+          )}
+        </motion.button>
+      ) : (
+        <div className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+          El protocolo podrá descargarse en formato Excel una vez que el expediente sea <strong>aprobado</strong> por PRODHAB.
+        </div>
+      )}
 
       {/* Botón enviar a PRODHAB */}
       {readOnly ? (

@@ -53,7 +53,9 @@ const RIESGOS_SUGERIDOS = [
 ];
 
 /**
- * Calcular nivel de riesgo
+ * Calcular nivel de riesgo. Único helper de nivel — se reusa tal cual para el NRI
+ * (Escenario 1 · riesgo inherente) y para el NRR (Escenario 2 · riesgo residual),
+ * no se duplica esta lógica.
  */
 function obtenerNivel(nri) {
   if (nri <= 4) return { nivel: 'Aceptable', color: 'bg-green-100 text-green-800' };
@@ -62,8 +64,37 @@ function obtenerNivel(nri) {
   return { nivel: 'Muy Alto', color: 'bg-red-100 text-red-800' };
 }
 
+// Default de los campos nuevos del Escenario 2 (riesgo residual) de una fila de riesgos.
+// Se combina con lo ya guardado (`{ ...RIESGO_RESIDUAL_DEFAULT, ...r }`) para que una fila
+// de un expediente viejo, que no tiene estas claves, quede con default seguro sin perder
+// descripcion/probabilidad/consecuencia. `probabilidadResidual: 0` y `consecuenciaResidual: 1`
+// replican el mismo criterio "sin responder" que ya usan `probabilidad`/`consecuencia`
+// (el select de probabilidad usa 0 como opción "--"; el de consecuencia usa 1 como "--").
+const RIESGO_RESIDUAL_DEFAULT = {
+  controles: '',
+  responsableControl: '',
+  probabilidadResidual: 0,
+  consecuenciaResidual: 1,
+  observacionesRiesgo: '',
+};
+
+// Campos adicionales del Escenario 1 que pide la plantilla oficial de PRODHAB:
+// condiciones que propician el riesgo, consecuencias sobre el indicador, y el
+// control YA EXISTENTE (distinto del control "por aplicar" del Escenario 2).
+const RIESGO_ESCENARIO1_EXTRA_DEFAULT = {
+  condicionesPropician: '',
+  consecuenciasIndicador: '',
+  controlExistente: '',
+};
+
 export default function Step6_Riesgos({ data = {}, onChange, subsanacion }) {
-  const [riesgos, setRiesgos] = useState(data.riesgos || []);
+  const [riesgos, setRiesgos] = useState(
+    (data.riesgos || []).map((r) => ({
+      ...RIESGO_ESCENARIO1_EXTRA_DEFAULT,
+      ...RIESGO_RESIDUAL_DEFAULT,
+      ...r,
+    }))
+  );
   const [showMatriz, setShowMatriz] = useState(false);
   const [mostrarSugeridos, setMostrarSugeridos] = useState(false);
 
@@ -83,6 +114,8 @@ export default function Step6_Riesgos({ data = {}, onChange, subsanacion }) {
       descripcion: '',
       probabilidad: 0,
       consecuencia: 1,
+      ...RIESGO_ESCENARIO1_EXTRA_DEFAULT,
+      ...RIESGO_RESIDUAL_DEFAULT,
     };
     setRiesgos([...riesgos, nuevoRiesgo]);
   };
@@ -98,6 +131,8 @@ export default function Step6_Riesgos({ data = {}, onChange, subsanacion }) {
         descripcion: sugerido.descripcion,
         probabilidad: sugerido.probabilidad,
         consecuencia: sugerido.consecuencia,
+        ...RIESGO_ESCENARIO1_EXTRA_DEFAULT,
+        ...RIESGO_RESIDUAL_DEFAULT,
       },
     ]);
     setMostrarSugeridos(false);
@@ -262,84 +297,111 @@ export default function Step6_Riesgos({ data = {}, onChange, subsanacion }) {
         </motion.div>
       )}
 
-      {/* Tabla de riesgos */}
-      <div className="overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="w-full">
-          {/* Encabezados */}
-          <thead className="bg-gray-100 border-b border-gray-200">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                Descripción del Riesgo <span className="text-red-500">*</span>
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                Probabilidad <span className="text-red-500">*</span>
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                Consecuencia <span className="text-red-500">*</span>
-              </th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                NRI
-              </th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                Nivel
-              </th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                Acciones
-              </th>
-            </tr>
-          </thead>
+      {/* Riesgos: cada uno en dos escenarios (inherente / residual) */}
+      {riesgos.length === 0 ? (
+        <div className="text-center py-10 text-gray-400 border border-dashed border-gray-300 rounded-lg">
+          <p className="font-medium">No hay riesgos registrados</p>
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {riesgos.map((riesgo, idx) => {
+            const nri = calcularNRI(riesgo.probabilidad, riesgo.consecuencia);
+            const { nivel, color } = obtenerNivel(nri);
 
-          {/* Filas */}
-          <tbody>
-            {riesgos.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
-                  <p>No hay riesgos registrados</p>
-                </td>
-              </tr>
-            ) : (
-              riesgos.map((riesgo, idx) => {
-                const nri = calcularNRI(
-                  riesgo.probabilidad,
-                  riesgo.consecuencia
-                );
-                const { nivel, color } = obtenerNivel(nri);
+            const nrrCalculable = riesgo.probabilidadResidual > 0;
+            const nrr = nrrCalculable
+              ? calcularNRI(riesgo.probabilidadResidual, riesgo.consecuenciaResidual)
+              : null;
+            const nivelResidual = nrrCalculable ? obtenerNivel(nrr) : null;
 
-                return (
-                  <motion.tr
-                    key={riesgo.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="border-b border-gray-200 hover:bg-gray-50"
+            return (
+              <motion.div
+                key={riesgo.id}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="border border-gray-200 rounded-lg p-5 bg-gray-50"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold text-gray-800 text-sm">
+                    Riesgo #{idx + 1}
+                  </h4>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => eliminarRiesgo(riesgo.id)}
+                    className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
                   >
-                    {/* Descripción */}
-                    <td className="px-4 py-3">
+                    <Trash2 className="w-4 h-4" /> Eliminar
+                  </motion.button>
+                </div>
+
+                {/* Escenario 1 · Riesgo Inherente */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                    Escenario 1 · Riesgo Inherente
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Descripción del Riesgo <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         value={riesgo.descripcion}
-                        onChange={(e) =>
-                          actualizarRiesgo(
-                            riesgo.id,
-                            'descripcion',
-                            e.target.value
-                          )
-                        }
+                        onChange={(e) => actualizarRiesgo(riesgo.id, 'descripcion', e.target.value)}
                         placeholder="Ej: Acceso no autorizado a BD"
                         className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       />
                       <CampoObservacion campo={`riesgos[${idx}].descripcion`} {...subsanacion} />
-                    </td>
+                    </div>
 
-                    {/* Probabilidad */}
-                    <td className="px-4 py-3">
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Condiciones que propician el riesgo
+                      </label>
+                      <textarea
+                        value={riesgo.condicionesPropician}
+                        onChange={(e) => actualizarRiesgo(riesgo.id, 'condicionesPropician', e.target.value)}
+                        placeholder="Ej: Los usuarios tienen permisos de instalación en sus equipos"
+                        rows="2"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Consecuencias sobre el cumplimiento del indicador
+                      </label>
+                      <textarea
+                        value={riesgo.consecuenciasIndicador}
+                        onChange={(e) => actualizarRiesgo(riesgo.id, 'consecuenciasIndicador', e.target.value)}
+                        placeholder="Ej: Incumplimiento de la normativa aplicable"
+                        rows="2"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Medida de control existente
+                      </label>
+                      <input
+                        type="text"
+                        value={riesgo.controlExistente}
+                        onChange={(e) => actualizarRiesgo(riesgo.id, 'controlExistente', e.target.value)}
+                        placeholder="Ej: Cuentas de usuario con permisos limitados"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Probabilidad <span className="text-red-500">*</span>
+                      </label>
                       <select
                         value={riesgo.probabilidad}
                         onChange={(e) =>
-                          actualizarRiesgo(
-                            riesgo.id,
-                            'probabilidad',
-                            parseInt(e.target.value)
-                          )
+                          actualizarRiesgo(riesgo.id, 'probabilidad', parseInt(e.target.value))
                         }
                         className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       >
@@ -351,18 +413,16 @@ export default function Step6_Riesgos({ data = {}, onChange, subsanacion }) {
                         ))}
                       </select>
                       <CampoObservacion campo={`riesgos[${idx}].probabilidad`} {...subsanacion} />
-                    </td>
+                    </div>
 
-                    {/* Consecuencia */}
-                    <td className="px-4 py-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Consecuencia <span className="text-red-500">*</span>
+                      </label>
                       <select
                         value={riesgo.consecuencia}
                         onChange={(e) =>
-                          actualizarRiesgo(
-                            riesgo.id,
-                            'consecuencia',
-                            parseInt(e.target.value)
-                          )
+                          actualizarRiesgo(riesgo.id, 'consecuencia', parseInt(e.target.value))
                         }
                         className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       >
@@ -374,42 +434,120 @@ export default function Step6_Riesgos({ data = {}, onChange, subsanacion }) {
                         ))}
                       </select>
                       <CampoObservacion campo={`riesgos[${idx}].consecuencia`} {...subsanacion} />
-                    </td>
+                    </div>
+                  </div>
 
-                    {/* NRI (automático) */}
-                    <td className="px-4 py-3 text-center font-bold text-gray-900">
-                      {riesgo.probabilidad > 0 ? nri : '-'}
-                    </td>
+                  <div className="mt-3 flex items-center gap-3 text-sm">
+                    <span className="font-medium text-gray-600">
+                      NRI: <span className="font-bold text-gray-900">{riesgo.probabilidad > 0 ? nri : '-'}</span>
+                    </span>
+                    {riesgo.probabilidad > 0 && (
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${color}`}>{nivel}</span>
+                    )}
+                  </div>
+                </div>
 
-                    {/* Nivel */}
-                    <td className="px-4 py-3 text-center">
-                      {riesgo.probabilidad > 0 && (
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${color}`}
-                        >
-                          {nivel}
-                        </span>
-                      )}
-                    </td>
+                {/* Escenario 2 · Riesgo Residual */}
+                <div className="bg-white border border-primary-200 rounded-lg p-4">
+                  <p className="text-xs font-bold text-primary-700 uppercase tracking-wide mb-3">
+                    Escenario 2 · Riesgo Residual
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Medida de control a aplicar
+                      </label>
+                      <input
+                        type="text"
+                        value={riesgo.controles}
+                        onChange={(e) => actualizarRiesgo(riesgo.id, 'controles', e.target.value)}
+                        placeholder="Ej: Autenticación multifactor"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </div>
 
-                    {/* Acciones */}
-                    <td className="px-4 py-3 text-center">
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => eliminarRiesgo(riesgo.id)}
-                        className="text-red-600 hover:text-red-800"
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Responsable de aplicar la medida
+                      </label>
+                      <input
+                        type="text"
+                        value={riesgo.responsableControl}
+                        onChange={(e) => actualizarRiesgo(riesgo.id, 'responsableControl', e.target.value)}
+                        placeholder="Nombre del responsable"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Probabilidad de ocurrencia (después de controles)
+                      </label>
+                      <select
+                        value={riesgo.probabilidadResidual}
+                        onChange={(e) =>
+                          actualizarRiesgo(riesgo.id, 'probabilidadResidual', parseInt(e.target.value))
+                        }
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </motion.button>
-                    </td>
-                  </motion.tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                        <option value="0">--</option>
+                        {PROBABILIDADES.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.id}. {p.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Magnitud de las consecuencias (después de controles)
+                      </label>
+                      <select
+                        value={riesgo.consecuenciaResidual}
+                        onChange={(e) =>
+                          actualizarRiesgo(riesgo.id, 'consecuenciaResidual', parseInt(e.target.value))
+                        }
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      >
+                        <option value="1">--</option>
+                        {CONSECUENCIAS.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.nombre} ({c.valor})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Observaciones
+                      </label>
+                      <textarea
+                        value={riesgo.observacionesRiesgo}
+                        onChange={(e) => actualizarRiesgo(riesgo.id, 'observacionesRiesgo', e.target.value)}
+                        rows="2"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-3 text-sm">
+                    <span className="font-medium text-gray-600">
+                      NRR: <span className="font-bold text-gray-900">{nrrCalculable ? nrr : 'Pendiente'}</span>
+                    </span>
+                    {nrrCalculable && (
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${nivelResidual.color}`}>
+                        {nivelResidual.nivel}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Botones: agregar + ver sugeridos */}
       <div className="flex flex-wrap gap-3">

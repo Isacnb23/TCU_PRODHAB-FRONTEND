@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trash2, Plus, Target } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
+import OptionalSection from '../Common/OptionalSection';
 import CampoObservacion from '../Wizard/CampoObservacion';
 
 /**
@@ -63,11 +64,35 @@ const BASES_LEGALES = [
   'Otra',
 ];
 
+// Valores posibles para los campos SÍ/NO nuevos (mismo patrón que Step8_Adicionales.jsx):
+// '' = sin responder (default seguro para expedientes viejos que no tienen el campo).
+const SI_NO = ['', 'SI', 'NO'];
+
+// Default de las columnas nuevas de una fila de datosRecopilados. Se combina con lo ya
+// guardado (`{ ...DATO_NUEVO_DEFAULT, ...d }`) para que una fila de un expediente viejo,
+// que no tiene estas claves, quede con default seguro sin perder nombre/tipo/obligatorio.
+const DATO_NUEVO_DEFAULT = {
+  fuente: '',
+  uso: '',
+  personasMenores: '',
+  personasDiscapacidad: '',
+  personasFuncionarias: '',
+  personasVulnerables: '',
+  vigencia: '',
+};
+
 export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
   const [formData, setFormData] = useState({
     finalidad: data.finalidad || '',
     baseLegal: data.baseLegal || '',
-    datosRecopilados: data.datosRecopilados || [],
+    datosRecopilados: (data.datosRecopilados || []).map((d) => ({ ...DATO_NUEVO_DEFAULT, ...d })),
+    excepciones: data.excepciones || '',
+    requiereConsentimiento: data.requiereConsentimiento || '',
+    poblacionInterviniente: data.poblacionInterviniente || '',
+    cantidadAproxPersonas: data.cantidadAproxPersonas || '',
+    partesInteresadasInternas: data.partesInteresadasInternas || '',
+    anonimizacion: data.anonimizacion || '',
+    observacionesFinalidad: data.observacionesFinalidad || '',
   });
 
   useEffect(() => {
@@ -89,12 +114,34 @@ export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
       nombre: '',
       tipo: '',
       obligatorio: true,
+      ...DATO_NUEVO_DEFAULT,
     };
     setFormData((prev) => ({
       ...prev,
       datosRecopilados: [...prev.datosRecopilados, nuevoDato],
     }));
   };
+
+  // Mismo componente compacto que ya usa Step8_Adicionales.jsx para SÍ/NO/sin-responder.
+  const siNoSelect = (value, onChange) => (
+    <select
+      value={value}
+      onChange={onChange}
+      className={`px-2 py-1 rounded border text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none ${
+        value === 'SI'
+          ? 'border-green-400 bg-green-50 text-green-700'
+          : value === 'NO'
+          ? 'border-red-300 bg-red-50 text-red-700'
+          : 'border-gray-300'
+      }`}
+    >
+      {SI_NO.map((o) => (
+        <option key={o} value={o}>
+          {o === '' ? '--' : o === 'SI' ? 'SÍ' : 'NO'}
+        </option>
+      ))}
+    </select>
+  );
 
   /**
    * Eliminar dato
@@ -184,6 +231,104 @@ export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
         <CampoObservacion campo="baseLegal" {...subsanacion} />
       </div>
 
+      {/* Campos adicionales de la hoja FINALIDAD (todos opcionales) */}
+      <OptionalSection>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Excepciones aplicables
+            </label>
+            <textarea
+              value={formData.excepciones}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, excepciones: e.target.value }))
+              }
+              placeholder="Ej: Excepción por interés público, seguridad nacional, etc."
+              rows="2"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ¿Requiere consentimiento del titular?
+            </label>
+            {siNoSelect(formData.requiereConsentimiento, (e) =>
+              setFormData((prev) => ({ ...prev, requiereConsentimiento: e.target.value }))
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ¿Se aplica anonimización?
+            </label>
+            {siNoSelect(formData.anonimizacion, (e) =>
+              setFormData((prev) => ({ ...prev, anonimizacion: e.target.value }))
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Población interviniente
+            </label>
+            <input
+              type="text"
+              value={formData.poblacionInterviniente}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, poblacionInterviniente: e.target.value }))
+              }
+              placeholder="Ej: Pacientes, funcionarios, estudiantes..."
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cantidad aproximada de personas
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={formData.cantidadAproxPersonas}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, cantidadAproxPersonas: e.target.value }))
+              }
+              placeholder="Ej: 500"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Partes interesadas internas
+            </label>
+            <input
+              type="text"
+              value={formData.partesInteresadasInternas}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, partesInteresadasInternas: e.target.value }))
+              }
+              placeholder="Ej: Recursos Humanos, TI, Dirección Médica..."
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Observaciones
+            </label>
+            <textarea
+              value={formData.observacionesFinalidad}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, observacionesFinalidad: e.target.value }))
+              }
+              rows="2"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+            />
+          </div>
+        </div>
+      </OptionalSection>
+
       {/* Tabla de datos recopilados */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-3">
@@ -191,7 +336,7 @@ export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
         </h3>
 
         <div className="overflow-x-auto border border-gray-200 rounded-lg">
-          <table className="w-full">
+          <table className="w-full min-w-[1400px]">
             {/* Encabezados */}
             <thead className="bg-gray-100 border-b border-gray-200">
               <tr>
@@ -204,6 +349,27 @@ export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   Carácter
                 </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Fuente
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Uso
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Menores de edad
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Discapacidad
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Funcionarias
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Vulnerabilidad
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  Vigencia
+                </th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
                   Acciones
                 </th>
@@ -215,7 +381,7 @@ export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
               {formData.datosRecopilados.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="11"
                     className="px-4 py-8 text-center text-gray-500"
                   >
                     <p>No hay datos registrados</p>
@@ -290,6 +456,67 @@ export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
                         <option value="opcional">Opcional</option>
                       </select>
                       <CampoObservacion campo={`datosRecopilados[${idx}].obligatorio`} {...subsanacion} />
+                    </td>
+
+                    {/* Fuente */}
+                    <td className="px-4 py-3">
+                      <input
+                        type="text"
+                        value={dato.fuente}
+                        onChange={(e) => actualizarDato(dato.id, 'fuente', e.target.value)}
+                        placeholder="Ej: Formulario de ingreso"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </td>
+
+                    {/* Uso */}
+                    <td className="px-4 py-3">
+                      <input
+                        type="text"
+                        value={dato.uso}
+                        onChange={(e) => actualizarDato(dato.id, 'uso', e.target.value)}
+                        placeholder="Ej: Identificación del titular"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
+                    </td>
+
+                    {/* ¿Involucra personas menores de edad? */}
+                    <td className="px-4 py-3">
+                      {siNoSelect(dato.personasMenores, (e) =>
+                        actualizarDato(dato.id, 'personasMenores', e.target.value)
+                      )}
+                    </td>
+
+                    {/* ¿Involucra personas con discapacidad? */}
+                    <td className="px-4 py-3">
+                      {siNoSelect(dato.personasDiscapacidad, (e) =>
+                        actualizarDato(dato.id, 'personasDiscapacidad', e.target.value)
+                      )}
+                    </td>
+
+                    {/* ¿Involucra personas funcionarias? */}
+                    <td className="px-4 py-3">
+                      {siNoSelect(dato.personasFuncionarias, (e) =>
+                        actualizarDato(dato.id, 'personasFuncionarias', e.target.value)
+                      )}
+                    </td>
+
+                    {/* ¿Involucra personas en estado de vulnerabilidad? */}
+                    <td className="px-4 py-3">
+                      {siNoSelect(dato.personasVulnerables, (e) =>
+                        actualizarDato(dato.id, 'personasVulnerables', e.target.value)
+                      )}
+                    </td>
+
+                    {/* Vigencia */}
+                    <td className="px-4 py-3">
+                      <input
+                        type="text"
+                        value={dato.vigencia}
+                        onChange={(e) => actualizarDato(dato.id, 'vigencia', e.target.value)}
+                        placeholder="Ej: 5 años"
+                        className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                      />
                     </td>
 
                     {/* Acciones */}

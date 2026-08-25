@@ -43,10 +43,23 @@ const TIPOS_TRANSFERENCIA = [
   'Otra',
 ];
 
+const TIPOS_NACIONAL_INTERNACIONAL = ['Nacional', 'Internacional'];
+
+// Default de las columnas nuevas de una fila de transferencias. Se combina con lo ya
+// guardado (`{ ...TRANSFERENCIA_NUEVA_DEFAULT, ...t }`) para que una fila de un expediente
+// viejo, que no tiene estas claves, quede con default seguro sin perder pais/tipo/etc.
+const TRANSFERENCIA_NUEVA_DEFAULT = {
+  documentosRespaldo: '',
+  condicionesTransferencia: '',
+  tipoNacionalInternacional: '',
+  vigencia: '',
+  consideracionesSeguridad: '',
+};
+
 export default function Step5_Transferencia({ data = {}, onChange, subsanacion }) {
   const [formData, setFormData] = useState({
     realizaTransferencias: data.realizaTransferencias || false,
-    transferencias: data.transferencias || [],
+    transferencias: (data.transferencias || []).map((t) => ({ ...TRANSFERENCIA_NUEVA_DEFAULT, ...t })),
     justificacionGeneral: data.justificacionGeneral || '',
   });
 
@@ -81,6 +94,7 @@ export default function Step5_Transferencia({ data = {}, onChange, subsanacion }
       tipo: '',
       justificacion: '',
       baseLegal: '',
+      ...TRANSFERENCIA_NUEVA_DEFAULT,
     };
     setFormData((prev) => ({
       ...prev,
@@ -200,7 +214,7 @@ export default function Step5_Transferencia({ data = {}, onChange, subsanacion }
 
             {/* Tabla de transferencias */}
             <div className="overflow-x-auto border border-gray-200 rounded-lg">
-              <table className="w-full">
+              <table className="w-full min-w-[1600px]">
                 {/* Encabezados */}
                 <thead className="bg-gray-100 border-b border-gray-200">
                   <tr>
@@ -217,6 +231,21 @@ export default function Step5_Transferencia({ data = {}, onChange, subsanacion }
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                       Base Legal
                     </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Documentos de respaldo
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Condiciones de la transferencia
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Tipo (Nacional/Internacional)
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Vigencia
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Consideraciones de seguridad
+                    </th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
                       Acciones
                     </th>
@@ -228,7 +257,7 @@ export default function Step5_Transferencia({ data = {}, onChange, subsanacion }
                   {formData.transferencias.length === 0 ? (
                     <tr>
                       <td
-                        colSpan="5"
+                        colSpan="10"
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         <p>No hay transferencias registradas</p>
@@ -322,6 +351,74 @@ export default function Step5_Transferencia({ data = {}, onChange, subsanacion }
                             className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
                           />
                           <CampoObservacion campo={`transferencias[${idx}].baseLegal`} {...subsanacion} />
+                        </td>
+
+                        {/* Documentos de respaldo */}
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            value={trans.documentosRespaldo}
+                            onChange={(e) =>
+                              actualizarTransferencia(trans.id, 'documentosRespaldo', e.target.value)
+                            }
+                            placeholder="Ej: Contrato, DPA firmado"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                          />
+                        </td>
+
+                        {/* Condiciones de la transferencia */}
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            value={trans.condicionesTransferencia}
+                            onChange={(e) =>
+                              actualizarTransferencia(trans.id, 'condicionesTransferencia', e.target.value)
+                            }
+                            placeholder="Ej: Cifrado en tránsito y reposo"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                          />
+                        </td>
+
+                        {/* Tipo Nacional/Internacional */}
+                        <td className="px-4 py-3">
+                          <select
+                            value={trans.tipoNacionalInternacional}
+                            onChange={(e) =>
+                              actualizarTransferencia(trans.id, 'tipoNacionalInternacional', e.target.value)
+                            }
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                          >
+                            <option value="">--</option>
+                            {TIPOS_NACIONAL_INTERNACIONAL.map((t) => (
+                              <option key={t} value={t}>
+                                {t}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+
+                        {/* Vigencia */}
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            value={trans.vigencia}
+                            onChange={(e) => actualizarTransferencia(trans.id, 'vigencia', e.target.value)}
+                            placeholder="Ej: 3 años"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                          />
+                        </td>
+
+                        {/* Consideraciones de seguridad */}
+                        <td className="px-4 py-3">
+                          <input
+                            type="text"
+                            value={trans.consideracionesSeguridad}
+                            onChange={(e) =>
+                              actualizarTransferencia(trans.id, 'consideracionesSeguridad', e.target.value)
+                            }
+                            placeholder="Ej: Acceso restringido por VPN"
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                          />
                         </td>
 
                         {/* Acciones */}

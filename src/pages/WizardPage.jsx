@@ -26,6 +26,11 @@ export default function WizardPage() {
   const [formData, setFormData] = useState(FORM_DATA_INICIAL);
   const [currentStep, setCurrentStep] = useState(1);
   const [estado, setEstado] = useState('Borrador');
+  // Metadata del expediente (entidad, año, número asignado, fecha de envío) que
+  // Step9_Revision necesita para generar la portada/nombre del Excel una vez
+  // Aprobado. Separado de `estado` porque ya existía como su propio state y no
+  // quería duplicar esa lectura en dos lugares.
+  const [expedienteMeta, setExpedienteMeta] = useState({});
   const [observaciones, setObservaciones] = useState([]);
   const [subsanaciones, setSubsanaciones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,6 +89,13 @@ export default function WizardPage() {
 
         setFormData(datos);
         setEstado(expediente.estado);
+        setExpedienteMeta({
+          entidad: expediente.entidad,
+          anio: expediente.anio,
+          numeroExpediente: expediente.numeroExpediente,
+          estado: expediente.estado,
+          fechaEnvio: expediente.fechaEnvio,
+        });
         setObservaciones(expediente.observaciones || []);
 
         const respaldoStep = localStorage.getItem(`prodhab_currentStep_${id}`);
@@ -162,6 +174,7 @@ export default function WizardPage() {
             setFormData={setFormData}
             expedienteId={id}
             estado={estado}
+            expedienteMeta={expedienteMeta}
             readOnly={estado !== 'Borrador' && estado !== 'RequiereSubsanacion'}
             observaciones={observaciones}
             subsanaciones={subsanaciones}
