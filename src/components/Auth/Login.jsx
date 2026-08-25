@@ -30,7 +30,7 @@ export default function Login() {
   }
 
   return (
-    <div className="h-screen flex items-center justify-center bg-[#EEF2F7] px-4">
+    <div className="h-screen flex items-center justify-center bg-[#F7F3EA] px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">
         <div
           className="h-24 flex items-center justify-center border-b-2 border-[#C9A84C]"

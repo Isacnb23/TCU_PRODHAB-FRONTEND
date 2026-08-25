@@ -8,7 +8,8 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f9fafb;
+  /* El color de fondo lo define index.css (--bg-app), única fuente de verdad
+     para evitar que dos archivos compitan por el mismo estilo. */
   color: #1f2937;
 }
 

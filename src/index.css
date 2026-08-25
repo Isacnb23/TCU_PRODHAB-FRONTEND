@@ -6,7 +6,8 @@
 :root {
   --primary: #1B2A4A;      /* Azul marino institucional */
   --secondary: #C9A84C;    /* Dorado institucional */
-  --bg-app: #EEF2F7;       /* Fondo general de la app */
+  --bg-app: #F7F3EA;       /* Fondo general de la app (beige cálido) */
+  --bg-content: #F1EBDD;   /* Área de contenido, un tono más profundo (mismo efecto de capas de antes) */
   --text-main: #1a1a2e;    /* Texto principal */
   --text-muted: #6b7280;   /* Texto secundario */
   --border: #e5e7eb;       /* Bordes */

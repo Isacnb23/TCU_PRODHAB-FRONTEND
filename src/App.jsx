@@ -39,9 +39,9 @@ function App() {
           path="/expedientes"
           element={
             <ProtectedRoute>
-              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+              <div className="h-screen flex flex-col bg-[#F7F3EA]">
                 <Header />
-                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                <main className="flex-1 overflow-y-auto bg-[#F1EBDD] p-8">
                   <MisExpedientes />
                 </main>
               </div>
@@ -64,9 +64,9 @@ function App() {
           path="/revision"
           element={
             <AdminRoute>
-              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+              <div className="h-screen flex flex-col bg-[#F7F3EA]">
                 <Header />
-                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                <main className="flex-1 overflow-y-auto bg-[#F1EBDD] p-8">
                   <RevisionBandeja />
                 </main>
               </div>
@@ -77,9 +77,9 @@ function App() {
           path="/revision/:id"
           element={
             <AdminRoute>
-              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+              <div className="h-screen flex flex-col bg-[#F7F3EA]">
                 <Header />
-                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                <main className="flex-1 overflow-y-auto bg-[#F1EBDD] p-8">
                   <RevisionExpediente />
                 </main>
               </div>
@@ -92,9 +92,9 @@ function App() {
           path="/usuarios"
           element={
             <AdminRoute>
-              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+              <div className="h-screen flex flex-col bg-[#F7F3EA]">
                 <Header />
-                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                <main className="flex-1 overflow-y-auto bg-[#F1EBDD] p-8">
                   <GestionUsuarios />
                 </main>
               </div>

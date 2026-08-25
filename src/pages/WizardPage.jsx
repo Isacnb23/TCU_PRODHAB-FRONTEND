@@ -144,7 +144,7 @@ export default function WizardPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#EEF2F7]">
+      <div className="h-screen flex items-center justify-center bg-[#F7F3EA]">
         <p className="text-[#1B2A4A] text-sm">Cargando expediente...</p>
       </div>
     );
@@ -152,7 +152,7 @@ export default function WizardPage() {
 
   if (error) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#EEF2F7]">
+      <div className="h-screen flex items-center justify-center bg-[#F7F3EA]">
         <div className="text-center">
           <p className="text-red-600 text-sm font-medium mb-1">{error}</p>
           <p className="text-gray-400 text-xs">Regresando a Mis Expedientes...</p>
@@ -162,11 +162,11 @@ export default function WizardPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[#EEF2F7]">
+    <div className="h-screen flex flex-col bg-[#F7F3EA]">
       <Header mostrarVolverExpedientes />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar currentStep={currentStep} setCurrentStep={setCurrentStep} />
-        <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+        <main className="flex-1 overflow-y-auto bg-[#F1EBDD] p-8">
           <WizardContainer
             currentStep={currentStep}
             setCurrentStep={setCurrentStep}
