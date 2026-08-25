@@ -28,7 +28,7 @@ function TablaArray({ valor }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200">
       <table className="w-full text-xs">
-        <thead className="bg-gray-50 text-gray-600 uppercase tracking-wide">
+        <thead className="bg-[#1B2A4A]/5 text-[#1B2A4A] uppercase tracking-wide">
           <tr>
             {columnas.map((col) => (
               <th key={col} className="text-left px-3 py-2 font-semibold">
@@ -39,7 +39,7 @@ function TablaArray({ valor }) {
         </thead>
         <tbody>
           {valor.map((fila, i) => (
-            <tr key={fila?.id ?? i} className="border-t border-gray-100">
+            <tr key={fila?.id ?? i} className="border-t border-gray-100 hover:bg-gray-50/60">
               {columnas.map((col) => (
                 <td key={col} className="px-3 py-2 text-gray-700 align-top">
                   <ValorSimple valor={fila?.[col]} />
@@ -102,11 +102,11 @@ export default function CampoPaso({ etiqueta, valor }) {
     return (
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{etiqueta}</p>
-        <div className="pl-3 border-l-2 border-gray-100 space-y-1">
+        <div className="pl-3 border-l-2 border-[#1B2A4A]/10 space-y-1">
           {entradas.map(([k, v]) => (
             <div key={k} className="text-sm">
               <span className="text-gray-500">{humanizarClave(k)}: </span>
-              <span className="text-gray-800">
+              <span className="text-gray-900 font-medium">
                 <ValorSimple valor={v} />
               </span>
             </div>
@@ -119,7 +119,7 @@ export default function CampoPaso({ etiqueta, valor }) {
   return (
     <div>
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{etiqueta}</p>
-      <p className="text-sm text-gray-800">
+      <p className="text-sm text-gray-900 font-medium">
         <ValorSimple valor={valor} />
       </p>
     </div>

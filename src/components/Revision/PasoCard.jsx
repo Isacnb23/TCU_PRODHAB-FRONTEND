@@ -85,9 +85,19 @@ export default function PasoCard({
   onChangeObservacion,
   puedeObservar,
 }) {
+  const tieneObservacion = observacionesPrevias.length > 0;
+
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/60">
+    <div
+      className={`bg-white rounded-2xl overflow-hidden border ${
+        tieneObservacion ? 'border-amber-300 ring-1 ring-amber-200/70' : 'border-gray-200'
+      }`}
+    >
+      <div
+        className={`flex items-center justify-between px-5 py-3 border-b ${
+          tieneObservacion ? 'border-amber-200 bg-amber-50/70' : 'border-gray-100 bg-gray-50/60'
+        }`}
+      >
         <div className="flex items-center gap-2">
           {completado ? (
             <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -98,6 +108,12 @@ export default function PasoCard({
             Paso {paso} · {titulo}
           </h3>
         </div>
+        {tieneObservacion && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-100 border border-amber-300 rounded-full px-2 py-0.5">
+            <MessageSquareWarning className="w-2.5 h-2.5" />
+            Con observación
+          </span>
+        )}
       </div>
 
       <div className="px-5 py-4">

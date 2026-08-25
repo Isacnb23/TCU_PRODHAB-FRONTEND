@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FilePlus2, Inbox, AlertCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FilePlus2, Inbox, AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
 import NuevoExpedienteModal from './NuevoExpedienteModal';
 
@@ -19,10 +19,12 @@ function formatFecha(fecha) {
 
 export default function MisExpedientes() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [expedientes, setExpedientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [mensaje, setMensaje] = useState(location.state?.mensaje || '');
 
   async function cargar() {
     setLoading(true);
@@ -39,7 +41,29 @@ export default function MisExpedientes() {
 
   useEffect(() => {
     cargar();
+    // Limpiar el mensaje del state para que no reaparezca en un refresh manual.
+    if (location.state?.mensaje) {
+      window.history.replaceState({}, '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // El mensaje de éxito del envío es notorio pero no debe quedarse pegado para siempre.
+  useEffect(() => {
+    if (!mensaje) return;
+    const timer = setTimeout(() => setMensaje(''), 6000);
+    return () => clearTimeout(timer);
+  }, [mensaje]);
+
+  // Los que requieren subsanación necesitan acción del usuario: van primero.
+  // Array.prototype.sort es estable, así que el orden dentro de cada grupo se mantiene.
+  const expedientesOrdenados = useMemo(
+    () =>
+      [...expedientes].sort(
+        (a, b) => (b.estado === 'RequiereSubsanacion') - (a.estado === 'RequiereSubsanacion')
+      ),
+    [expedientes]
+  );
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -57,6 +81,13 @@ export default function MisExpedientes() {
           Nuevo Expediente
         </button>
       </div>
+
+      {mensaje && (
+        <div className="mb-4 flex items-center gap-2 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          {mensaje}
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
@@ -94,13 +125,29 @@ export default function MisExpedientes() {
               </tr>
             </thead>
             <tbody>
-              {expedientes.map((exp) => (
+              {expedientesOrdenados.map((exp) => {
+                const requiereSubsanacion = exp.estado === 'RequiereSubsanacion';
+                return (
                 <tr
                   key={exp.id}
                   onClick={() => navigate(`/expedientes/${exp.id}`)}
-                  className="border-t border-gray-100 hover:bg-[#1B2A4A]/5 cursor-pointer transition-colors"
+                  className={`border-t border-gray-100 hover:bg-[#1B2A4A]/5 cursor-pointer transition-colors ${
+                    requiereSubsanacion ? 'bg-amber-50/70 border-l-4 border-l-amber-400' : ''
+                  }`}
                 >
-                  <td className="px-5 py-3 font-medium text-gray-800">{exp.entidad}</td>
+                  <td className="px-5 py-3 font-medium text-gray-800">
+                    <div className="flex items-center gap-2">
+                      {requiereSubsanacion && (
+                        <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                      )}
+                      <div>
+                        {exp.entidad}
+                        {requiereSubsanacion && (
+                          <p className="text-xs font-normal text-amber-600">Requiere tu atención</p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
                   <td className="px-5 py-3 text-gray-600">{exp.anio}</td>
                   <td className="px-5 py-3 text-gray-600">{exp.numeroExpediente || 'Sin asignar'}</td>
                   <td className="px-5 py-3">
@@ -115,7 +162,8 @@ export default function MisExpedientes() {
                   <td className="px-5 py-3 text-gray-600">Paso {exp.pasoActual} de 9</td>
                   <td className="px-5 py-3 text-gray-500">{formatFecha(exp.fechaModificacion)}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

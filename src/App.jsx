@@ -7,6 +7,7 @@ import AdminRoute from './components/Auth/AdminRoute';
 import MisExpedientes from './components/Expedientes/MisExpedientes';
 import RevisionBandeja from './components/Revision/RevisionBandeja';
 import RevisionExpediente from './components/Revision/RevisionExpediente';
+import GestionUsuarios from './components/Usuarios/GestionUsuarios';
 import WizardPage from './pages/WizardPage';
 import './App.css';
 
@@ -80,6 +81,21 @@ function App() {
                 <Header />
                 <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
                   <RevisionExpediente />
+                </main>
+              </div>
+            </AdminRoute>
+          }
+        />
+
+        {/* Gestión de usuarios del Admin: pantalla aparte del wizard (protegida, solo Admin) */}
+        <Route
+          path="/usuarios"
+          element={
+            <AdminRoute>
+              <div className="h-screen flex flex-col bg-[#EEF2F7]">
+                <Header />
+                <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">
+                  <GestionUsuarios />
                 </main>
               </div>
             </AdminRoute>

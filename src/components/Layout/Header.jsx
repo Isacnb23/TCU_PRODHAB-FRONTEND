@@ -9,9 +9,10 @@
 // Logo oficial PRODHAB en blanco (PNG transparente, resuelto por Vite)
 import logoProdhab from '../../assets/logos/Logo_Prodhab_Blanco_Dorado_PNG.png';
 import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export default function Header() {
+export default function Header({ mostrarVolverExpedientes = false }) {
   const { user, logout } = useAuth();
 
   return (
@@ -37,12 +38,29 @@ export default function Header() {
 
         {/* Usuario + Cerrar sesión */}
         <div className="flex items-center gap-4">
+          {mostrarVolverExpedientes && (
+            <Link
+              to="/expedientes"
+              className="flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Mis Expedientes
+            </Link>
+          )}
           {user?.rol === 'Admin' && (
             <Link
               to="/revision"
               className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded px-3 py-1 hover:bg-[#C9A84C]/10 transition-colors"
             >
               Revisión
+            </Link>
+          )}
+          {user?.rol === 'Admin' && (
+            <Link
+              to="/usuarios"
+              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded px-3 py-1 hover:bg-[#C9A84C]/10 transition-colors"
+            >
+              Usuarios
             </Link>
           )}
           {user && <span className="text-white/70 text-xs hidden sm:inline">{user.nombre || user.email}</span>}

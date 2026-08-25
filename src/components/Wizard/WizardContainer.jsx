@@ -207,8 +207,11 @@ export default function WizardContainer({
     setEnviarError(null);
     try {
       await expedienteService.enviar(expedienteId);
-      alert('✅ Expediente enviado correctamente a PRODHAB.');
-      navigate('/expedientes');
+      const mensaje =
+        estado === 'RequiereSubsanacion'
+          ? 'Expediente reenviado correctamente.'
+          : 'Expediente enviado a PRODHAB correctamente.';
+      navigate('/expedientes', { state: { mensaje } });
     } catch (error) {
       if (error.status === 409) {
         setEnviarError(error.message);

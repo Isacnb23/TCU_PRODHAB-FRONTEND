@@ -151,7 +151,7 @@ export default function WizardPage() {
 
   return (
     <div className="h-screen flex flex-col bg-[#EEF2F7]">
-      <Header />
+      <Header mostrarVolverExpedientes />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar currentStep={currentStep} setCurrentStep={setCurrentStep} />
         <main className="flex-1 overflow-y-auto bg-[#F0F4F8] p-8">

@@ -15,6 +15,21 @@ const ESTADO_BADGE = {
   Aprobado: 'bg-green-50 text-green-700 border-green-200',
 };
 
+// Color de acento del encabezado, coherente con el badge de cada estado.
+const ESTADO_ACCENT = {
+  Borrador: '#9CA3AF',
+  Enviado: '#3B82F6',
+  EnRevision: '#D97706',
+  RequiereSubsanacion: '#DC2626',
+  Aprobado: '#16A34A',
+};
+
+function extensionDeArchivo(nombre) {
+  if (!nombre) return 'ARCH';
+  const partes = nombre.split('.');
+  return partes.length > 1 ? partes.pop().toUpperCase().slice(0, 4) : 'ARCH';
+}
+
 function formatFechaHora(fecha) {
   if (!fecha) return '—';
   return new Date(fecha).toLocaleString('es-CR', {
@@ -78,6 +93,8 @@ export default function RevisionExpediente() {
   }, [expediente]);
 
   const puedeActuar = expediente?.estado === 'Enviado';
+  const completados = pasos.filter((p) => p.completado).length;
+  const progresoPct = pasos.length ? (completados / pasos.length) * 100 : 0;
 
   const hayObservacionesEscritas = Object.values(observacionesInput).some((v) => (v || '').trim().length > 0);
 
@@ -148,28 +165,50 @@ export default function RevisionExpediente() {
       </button>
 
       {/* Encabezado */}
-      <div className="bg-white border border-gray-200 rounded-2xl px-6 py-5 mb-6">
-        <div className="flex items-start justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-[#1B2A4A]">{expediente.entidad}</h1>
-            <p className="text-sm text-gray-500">Año {expediente.anio}</p>
+      <div className="relative bg-white border border-gray-200 rounded-2xl px-6 py-6 mb-6 overflow-hidden">
+        <div
+          className="absolute inset-y-0 left-0 w-1.5"
+          style={{ background: ESTADO_ACCENT[expediente.estado] || '#9CA3AF' }}
+        />
+        <div className="pl-3">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#C9A84C] mb-1">
+                Expediente · Año {expediente.anio}
+              </p>
+              <h1 className="text-3xl font-extrabold text-[#1B2A4A] leading-tight">{expediente.entidad}</h1>
+            </div>
+            <span
+              className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold border ${
+                ESTADO_BADGE[expediente.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
+              }`}
+            >
+              {expediente.estado}
+            </span>
           </div>
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${
-              ESTADO_BADGE[expediente.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
-            }`}
-          >
-            {expediente.estado}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-x-8 gap-y-2 mt-4 text-sm">
-          <div>
-            <span className="text-gray-400">Nº Expediente: </span>
-            <span className="text-gray-700 font-medium">{expediente.numeroExpediente || 'Sin asignar'}</span>
+
+          <div className="flex flex-wrap gap-x-10 gap-y-3 mt-5 text-sm">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Nº Expediente</p>
+              <p className="text-gray-800 font-semibold mt-0.5">{expediente.numeroExpediente || 'Sin asignar'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Fecha de envío</p>
+              <p className="text-gray-800 font-semibold mt-0.5">{formatFechaHora(expediente.fechaEnvio)}</p>
+            </div>
           </div>
-          <div>
-            <span className="text-gray-400">Fecha de envío: </span>
-            <span className="text-gray-700 font-medium">{formatFechaHora(expediente.fechaEnvio)}</span>
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+              <span>Progreso del expediente</span>
+              <span>{completados}/{pasos.length} pasos completados</span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-2 rounded-full transition-all duration-500"
+                style={{ width: `${progresoPct}%`, background: 'linear-gradient(to right, #1B2A4A, #C9A84C)' }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -200,59 +239,59 @@ export default function RevisionExpediente() {
 
       {/* Subsanaciones del usuario */}
       {subsanaciones.length > 0 && (
-        <div className="mt-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100 bg-gray-50/60">
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-3">
             <FileWarning className="w-4 h-4 text-[#1B2A4A]/60" />
             <h3 className="font-semibold text-[#1B2A4A]">Subsanaciones del usuario</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-gray-500 text-xs uppercase tracking-wide">
-                <tr>
-                  <th className="text-left px-5 py-2">Paso</th>
-                  <th className="text-left px-5 py-2">Campo</th>
-                  <th className="text-left px-5 py-2">Justificación</th>
-                  <th className="text-left px-5 py-2">Fecha</th>
-                  <th className="text-right px-5 py-2">Archivo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subsanaciones.map((sub) => (
-                  <tr key={sub.id} className="border-t border-gray-100">
-                    <td className="px-5 py-2.5 text-gray-700">{sub.paso}</td>
-                    <td className="px-5 py-2.5 text-gray-700">{sub.campo}</td>
-                    <td className="px-5 py-2.5 text-gray-600">{sub.textoJustificacion || '—'}</td>
-                    <td className="px-5 py-2.5 text-gray-500">{formatFechaHora(sub.fechaSubsanacion)}</td>
-                    <td className="px-5 py-2.5 text-right">
-                      {sub.tieneArchivo ? (
-                        <button
-                          type="button"
-                          onClick={() => handleDescargar(sub)}
-                          className="inline-flex items-center gap-1 text-[#1B2A4A] font-semibold text-xs hover:underline"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          Descargar
-                        </button>
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {subsanaciones.map((sub) => (
+              <div key={sub.id} className="bg-white border border-gray-200 rounded-xl px-4 py-4">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wide text-[#1B2A4A]/70">
+                    Paso {sub.paso} · {sub.campo}
+                  </span>
+                  <span className="text-[11px] text-gray-400 flex-shrink-0">
+                    {formatFechaHora(sub.fechaSubsanacion)}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 mb-3">
+                  {sub.textoJustificacion || <span className="text-gray-400 italic">Sin justificación escrita.</span>}
+                </p>
+                {sub.tieneArchivo ? (
+                  <button
+                    type="button"
+                    onClick={() => handleDescargar(sub)}
+                    className="flex items-center gap-2.5 w-full text-left bg-[#1B2A4A]/5 hover:bg-[#1B2A4A]/10 rounded-lg px-3 py-2 transition-colors"
+                  >
+                    <span className="flex items-center justify-center w-8 h-8 rounded bg-[#1B2A4A]/10 text-[#1B2A4A] text-[10px] font-bold flex-shrink-0">
+                      {extensionDeArchivo(sub.archivoNombre)}
+                    </span>
+                    <span className="flex-1 min-w-0 truncate text-xs font-medium text-gray-700">
+                      {sub.archivoNombre || 'archivo'}
+                    </span>
+                    <Download className="w-3.5 h-3.5 text-[#1B2A4A] flex-shrink-0" />
+                  </button>
+                ) : (
+                  <span className="text-xs text-gray-300">Sin archivo adjunto</span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Barra de acciones */}
-      <div className="mt-6">
+      {/* Barra de acciones: cierre de la revisión, fija abajo como el wizard */}
+      <div className="sticky bottom-0 mt-8 bg-white border border-gray-200 rounded-2xl shadow-lg shadow-[#1B2A4A]/10 px-6 py-5">
         {puedeActuar ? (
-          <div className="bg-white border border-gray-200 shadow-lg rounded-2xl px-5 py-4 flex items-center justify-between flex-wrap gap-3">
-            <p className="text-sm text-gray-500">
-              Escribe observaciones en los pasos que correspondan para solicitar subsanación, o aprueba el
-              expediente si está completo.
-            </p>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <p className="text-sm font-semibold text-[#1B2A4A]">Decisión de revisión</p>
+              <p className="text-xs text-gray-500 mt-0.5 max-w-md">
+                Escribe observaciones en los pasos que correspondan para solicitar subsanación, o aprueba el
+                expediente si está completo.
+              </p>
+            </div>
             <div className="flex items-center gap-3 flex-shrink-0">
               <button
                 type="button"
@@ -275,10 +314,10 @@ export default function RevisionExpediente() {
             </div>
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-2xl px-5 py-4 text-sm text-gray-500">
-            Este expediente está en estado <span className="font-semibold">{expediente.estado}</span>: no admite
-            acciones de revisión en este momento.
-          </div>
+          <p className="text-sm text-gray-500">
+            Este expediente está en estado <span className="font-semibold text-gray-700">{expediente.estado}</span>:
+            no admite acciones de revisión en este momento.
+          </p>
         )}
       </div>
 
