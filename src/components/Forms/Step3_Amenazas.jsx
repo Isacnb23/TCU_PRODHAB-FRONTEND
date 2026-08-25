@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, ShieldAlert } from 'lucide-react';
+import { ChevronDown, ChevronUp, ShieldAlert, Lock, Trash2, PenLine, PauseCircle } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import CampoObservacion from '../Wizard/CampoObservacion';
 
@@ -23,7 +23,7 @@ const AMBITOS = [
   {
     id: 1,
     nombre: 'Acceso No Autorizado',
-    icono: '🔓',
+    icono: Lock,
     descripcion:
       'Riesgo de que terceros no autorizados accedan a los datos personales',
     preguntas: [
@@ -37,7 +37,7 @@ const AMBITOS = [
   {
     id: 2,
     nombre: 'Destrucción de Datos',
-    icono: '🗑️',
+    icono: Trash2,
     descripcion: 'Riesgo de pérdida permanente de datos personales',
     preguntas: [
       'Existen copias de seguridad (backups) regulares',
@@ -50,7 +50,7 @@ const AMBITOS = [
   {
     id: 3,
     nombre: 'Alteración de Datos',
-    icono: '✏️',
+    icono: PenLine,
     descripcion: 'Riesgo de modificación no autorizada de datos',
     preguntas: [
       'Se registran cambios en BD (auditoría)',
@@ -63,7 +63,7 @@ const AMBITOS = [
   {
     id: 4,
     nombre: 'No Disponibilidad',
-    icono: '⏸️',
+    icono: PauseCircle,
     descripcion: 'Riesgo de que los datos no estén disponibles cuando se necesitan',
     preguntas: [
       'Hay redundancia en servidores/infraestructura',
@@ -193,6 +193,7 @@ export default function Step3_Amenazas({ data = {}, onChange, subsanacion }) {
         {AMBITOS.map((ambito) => {
           const puntuacion = calcularPuntuacion(ambito.id);
           const esExpandido = expandidos[ambito.id];
+          const IconoAmbito = ambito.icono;
 
           return (
             <motion.div
@@ -205,7 +206,11 @@ export default function Step3_Amenazas({ data = {}, onChange, subsanacion }) {
                 className="w-full bg-white px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center gap-3 flex-1 text-left">
-                  <span className="text-2xl">{ambito.icono}</span>
+                  {/* Mismo contenedor cuadrado 36x36 que usa el Sidebar para
+                      los iconos de paso, en vez del emoji anterior. */}
+                  <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#1B2A4A]/5 text-[#1B2A4A] flex-shrink-0">
+                    <IconoAmbito size={18} />
+                  </span>
                   <div>
                     <p className="font-semibold text-gray-900">
                       {ambito.id}. {ambito.nombre}

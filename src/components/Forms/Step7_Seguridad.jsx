@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, Plus, Shield, Lock } from 'lucide-react';
+import { Trash2, Plus, Shield, Lock, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
 import CampoObservacion from '../Wizard/CampoObservacion';
@@ -191,8 +191,8 @@ export default function Step7_Seguridad({ data = {}, onChange, subsanacion }) {
           onClick={() => setMostrarSugeridos(!mostrarSugeridos)}
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
         >
-          <Shield className="w-4 h-4" />
-          {mostrarSugeridos ? '🔽 Ocultar' : '🔼 Ver'} Sugeridos
+          {mostrarSugeridos ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {mostrarSugeridos ? 'Ocultar' : 'Ver'} Sugeridos
         </motion.button>
       </div>
 
@@ -203,8 +203,9 @@ export default function Step7_Seguridad({ data = {}, onChange, subsanacion }) {
           animate={{ opacity: 1, y: 0 }}
           className="bg-purple-50 border border-purple-200 rounded-lg p-4"
         >
-          <p className="text-sm font-semibold text-purple-900 mb-3">
-            💡 Controles Recomendados (haz clic para agregar)
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-purple-900 mb-3">
+            <Lightbulb className="w-4 h-4" />
+            Controles Recomendados (haz clic para agregar)
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {CONTROLES_SUGERIDOS.map((sugerido, idx) => (

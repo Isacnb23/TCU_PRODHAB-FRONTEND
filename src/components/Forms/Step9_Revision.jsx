@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Download, CheckCircle, XCircle, CheckCircle2, Send } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import { generarExcelProtocolo } from '../../utils/excelGenerator';
-import logoPrograma from '../../assets/Logo_Prodhab_Azul_Dorado_PNG-BhX8uBAh.png';
+import logoPrograma from '../../assets/logos/Logo_Agencia_Azul_Dorado_PNG.png';
 
 /**
  * Step9_Revision.jsx - Paso 9: Revisión Final y Exportación

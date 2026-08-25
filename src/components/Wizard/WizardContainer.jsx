@@ -280,7 +280,7 @@ export default function WizardContainer({
 
           {/* Un fieldset deshabilitado desactiva nativamente todos los inputs/selects/
               textareas/botones de los 9 Steps sin tener que tocar cada componente. */}
-          <fieldset disabled={readOnly} className="border-0 p-0 m-0 min-w-0">
+          <fieldset disabled={readOnly && currentStep !== TOTAL_STEPS} className="border-0 p-0 m-0 min-w-0">
             <CurrentStepComponent
               data={
                 currentStep === TOTAL_STEPS
