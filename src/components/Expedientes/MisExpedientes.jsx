@@ -107,7 +107,7 @@ export default function MisExpedientes() {
       {loading ? (
         <div className="text-center text-sm text-gray-500 py-16">Cargando expedientes...</div>
       ) : error ? null : expedientes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-200 rounded-2xl py-16 px-6">
+        <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-200 rounded-2xl shadow-sm py-16 px-6">
           <Inbox className="w-10 h-10 text-gray-300 mb-3" />
           <p className="text-gray-600 font-medium">Aún no tienes expedientes.</p>
           <p className="text-sm text-gray-400 mb-4">Crea el primero para empezar tu protocolo de actuación.</p>

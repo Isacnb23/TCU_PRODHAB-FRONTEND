@@ -4,6 +4,7 @@ import { Inbox, AlertCircle, CheckCircle2, ClipboardCheck } from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
 import { useAuth } from '../../context/AuthContext';
 import { etiquetaEstado } from '../../utils/estadoLabel';
+import SelectEstilizado from '../Common/SelectEstilizado';
 
 const ESTADO_BADGE = {
   Borrador: 'bg-gray-100 text-gray-700 border-gray-300',
@@ -64,20 +65,21 @@ export default function RevisionBandeja() {
           <p className="text-sm text-gray-500">Expedientes enviados por las entidades · Ley 8968</p>
         </div>
 
-        <select
-          value={estado}
-          onChange={(e) => {
-            setMensaje('');
-            setEstado(e.target.value);
-          }}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]"
-        >
-          {OPCIONES_ESTADO.map((op) => (
-            <option key={op.value} value={op.value}>
-              {op.label}
-            </option>
-          ))}
-        </select>
+        <div className="w-64">
+          <SelectEstilizado
+            value={estado}
+            onChange={(e) => {
+              setMensaje('');
+              setEstado(e.target.value);
+            }}
+          >
+            {OPCIONES_ESTADO.map((op) => (
+              <option key={op.value} value={op.value}>
+                {op.label}
+              </option>
+            ))}
+          </SelectEstilizado>
+        </div>
       </div>
 
       {mensaje && (
@@ -97,12 +99,12 @@ export default function RevisionBandeja() {
       {loading ? (
         <div className="text-center text-sm text-gray-500 py-16">Cargando expedientes...</div>
       ) : error ? null : expedientes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-200 rounded-2xl py-16 px-6">
+        <div className="flex flex-col items-center justify-center text-center bg-white border border-gray-200 rounded-2xl shadow-sm py-16 px-6">
           <Inbox className="w-10 h-10 text-gray-300 mb-3" />
           <p className="text-gray-600 font-medium">No hay expedientes pendientes de revisión.</p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden overflow-x-auto">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-[#1B2A4A]/5 text-[#1B2A4A] text-xs uppercase tracking-wide">
               <tr>
