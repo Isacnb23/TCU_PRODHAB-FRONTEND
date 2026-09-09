@@ -23,7 +23,7 @@ export default function Header({ mostrarVolverExpedientes = false }) {
 
   return (
     <header
-      className="relative h-16 flex-shrink-0 border-b-2 border-[#C9A84C]"
+      className="relative h-16 flex-shrink-0 border-b-2 border-[#C9A84C] shadow-md shadow-black/10"
       style={{ background: 'linear-gradient(to right, #1B2A4A, #243761)' }}
     >
       <div className="h-full max-w-full mx-auto px-6 flex items-center justify-between">
@@ -43,7 +43,7 @@ export default function Header({ mostrarVolverExpedientes = false }) {
         </div>
 
         {/* Usuario + Cerrar sesión */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           {mostrarVolverExpedientes && (
             <Link
               to="/expedientes"
@@ -56,7 +56,7 @@ export default function Header({ mostrarVolverExpedientes = false }) {
           {user?.rol === 'Admin' && (
             <Link
               to="/revision"
-              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded px-3 py-1 hover:bg-[#C9A84C]/10 transition-colors"
+              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 hover:bg-[#C9A84C]/10 transition-all duration-200"
             >
               Revisión
             </Link>
@@ -64,21 +64,25 @@ export default function Header({ mostrarVolverExpedientes = false }) {
           {user?.rol === 'Admin' && (
             <Link
               to="/usuarios"
-              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded px-3 py-1 hover:bg-[#C9A84C]/10 transition-colors"
+              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 hover:bg-[#C9A84C]/10 transition-all duration-200"
             >
               Usuarios
             </Link>
           )}
           {user && <NotificacionesBell />}
-          {user && <span className="text-white/70 text-xs hidden sm:inline">{user.nombre || user.email}</span>}
+          {user && (
+            <span className="text-white/70 text-xs hidden sm:inline border-l border-white/20 pl-5">
+              {user.nombre || user.email}
+            </span>
+          )}
           <button
             type="button"
             onClick={logout}
-            className="text-xs text-white border border-white/30 rounded px-3 py-1 hover:bg-white/10 transition-colors"
+            className="text-xs text-white border border-white/30 rounded-lg px-3 py-1.5 hover:bg-white/10 transition-all duration-200"
           >
             Cerrar sesión
           </button>
-          <p className="text-white/50 text-xs">v1.0.0 | 2026</p>
+          <p className="text-white/50 text-xs hidden lg:inline">v1.0.0 | 2026</p>
         </div>
       </div>
     </header>

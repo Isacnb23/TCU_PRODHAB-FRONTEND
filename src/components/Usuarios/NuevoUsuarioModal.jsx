@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import * as usuarioService from '../../services/usuarioService';
 import { sugerirEmail } from '../../utils/sugerirEmail';
+import SelectEstilizado from '../Common/SelectEstilizado';
 
 export default function NuevoUsuarioModal({ onClose, onCreado }) {
   const [nombre, setNombre] = useState('');
@@ -106,15 +107,14 @@ export default function NuevoUsuarioModal({ onClose, onCreado }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
-            <select
+            <SelectEstilizado
               value={rol}
               onChange={(e) => setRol(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]"
               disabled={creando}
             >
               <option value="Usuario">Usuario</option>
               <option value="Admin">Admin</option>
-            </select>
+            </SelectEstilizado>
           </div>
 
           {error && (
