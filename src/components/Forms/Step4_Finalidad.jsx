@@ -40,15 +40,9 @@ const DATOS_SUGERIDOS = [
  */
 
 const TIPOS_DATOS = [
-  'Identificación',
-  'Contacto',
-  'Biométrico',
-  'Financiero',
-  'Médico',
-  'Laboral',
-  'Educativo',
-  'Judicial',
-  'Otro',
+  'Datos Sensibles',
+  'Datos de Acceso Restringido',
+  'Datos de Acceso Irrestricto',
 ];
 
 const BASES_LEGALES = [
@@ -127,13 +121,12 @@ export default function Step4_Finalidad({ data = {}, onChange, subsanacion }) {
     <select
       value={value}
       onChange={onChange}
-      className={`px-2 py-1 rounded border text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none ${
-        value === 'SI'
+      className={`px-2 py-1 rounded border text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none ${value === 'SI'
           ? 'border-green-400 bg-green-50 text-green-700'
           : value === 'NO'
-          ? 'border-red-300 bg-red-50 text-red-700'
-          : 'border-gray-300'
-      }`}
+            ? 'border-red-300 bg-red-50 text-red-700'
+            : 'border-gray-300'
+        }`}
     >
       {SI_NO.map((o) => (
         <option key={o} value={o}>

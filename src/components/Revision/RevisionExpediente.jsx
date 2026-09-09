@@ -286,11 +286,20 @@ export default function RevisionExpediente() {
           <div className="grid gap-3 sm:grid-cols-2">
             {subsanaciones.map((sub) => (
               <div key={sub.id} className="bg-white border border-gray-200 rounded-xl px-4 py-4">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wide text-[#1B2A4A]/70">
+                {/* Antes: el label largo (Paso N · campo.anidado.largo) empujaba la fecha
+                    fuera del contenedor angosto de esta grilla de 2 columnas, cortándola.
+                    Fix: el label ahora trunca con elipsis (min-w-0 + truncate + flex-1) y
+                    se le agrega title para ver el texto completo al pasar el mouse; la
+                    fecha pasa a su propia línea debajo para que nunca compita por espacio
+                    ni se corte, sin importar qué tan largo sea el nombre del campo. */}
+                <div className="mb-2">
+                  <span
+                    className="block truncate text-xs font-bold uppercase tracking-wide text-[#1B2A4A]/70"
+                    title={`Paso ${sub.paso} · ${sub.campo}`}
+                  >
                     Paso {sub.paso} · {sub.campo}
                   </span>
-                  <span className="text-[11px] text-gray-400 flex-shrink-0">
+                  <span className="block text-[11px] text-gray-400 mt-0.5">
                     {formatFechaHora(sub.fechaSubsanacion)}
                   </span>
                 </div>

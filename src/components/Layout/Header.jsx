@@ -16,6 +16,11 @@ import NotificacionesBell from './NotificacionesBell';
 export default function Header({ mostrarVolverExpedientes = false }) {
   const { user, logout } = useAuth();
 
+  // Para el Admin, "Mis Expedientes" confunde con la Bandeja de Revisión (ahí llegan
+  // los de otros). El Admin puede seguir creando/gestionando los suyos, solo cambia
+  // la etiqueta para que no suene a "mis" cuando su rol principal es revisar los ajenos.
+  const etiquetaExpedientes = user?.rol === 'Admin' ? 'Expedientes' : 'Mis Expedientes';
+
   return (
     <header
       className="relative h-16 flex-shrink-0 border-b-2 border-[#C9A84C]"
@@ -45,7 +50,7 @@ export default function Header({ mostrarVolverExpedientes = false }) {
               className="flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Mis Expedientes
+              {etiquetaExpedientes}
             </Link>
           )}
           {user?.rol === 'Admin' && (

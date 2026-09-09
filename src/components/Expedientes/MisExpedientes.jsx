@@ -29,6 +29,11 @@ export default function MisExpedientes() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [mensaje, setMensaje] = useState(location.state?.mensaje || '');
 
+  // Mismo criterio que en Header.jsx: para el Admin, "Mis Expedientes" se confunde con la
+  // Bandeja de Revisión (donde llegan los de otros). El Admin sigue pudiendo crear/gestionar
+  // los suyos en esta misma pantalla — solo cambia la etiqueta, no la funcionalidad.
+  const tituloPagina = user?.rol === 'Admin' ? 'Expedientes' : 'Mis Expedientes';
+
   async function cargar() {
     setLoading(true);
     setError('');
@@ -72,7 +77,7 @@ export default function MisExpedientes() {
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#1B2A4A]">Mis Expedientes</h1>
+          <h1 className="text-2xl font-bold text-[#1B2A4A]">{tituloPagina}</h1>
           <p className="text-sm text-gray-500">Protocolos de actuación · Ley 8968</p>
         </div>
         <button

@@ -190,47 +190,82 @@ export async function generarExcelProtocolo(formData, expediente, logoUrl) {
     });
   }
 
-  // ===== EVAL. AMENAZAS (nota + anexo con metodología propia) =====
+
+  // ===== EVAL. AMENAZAS (mapeo fiel a la plantilla oficial) =====
   {
     const ws = wb.addWorksheet('EVAL. AMENAZAS');
-    ws.columns = [{ width: 3 }, { width: 70 }, { width: 12 }];
-    estiloTituloHoja(ws, 'EVALUACIÓN DE AMENAZAS', 3);
-    notaAmbar(ws, 2,
-      'La evaluación de amenazas de este protocolo se realizó con la metodología propia del Sistema Web de Protocolos de Actuación ' +
-      '(Paso 3 del formulario), que evalúa la existencia de controles por ámbito. No corresponde al cuestionario Douwe Korff / Manual del DPD ' +
-      'de la plantilla original. A continuación se presenta la evaluación real realizada.',
-      3);
+    ws.columns = [{ width: 4 }, { width: 68 }, { width: 12 }];
+    estiloTituloHoja(ws, 'TABLA PARA EVALUACIÓN DE AMENAZAS', 3);
+
+    ws.mergeCells(2, 1, 2, 3);
+    ws.getCell(2, 1).value = 'Formato de Douwe Korff & Marie Georges — Manual del DPD';
+    ws.getCell(2, 1).font = { italic: true, size: 9, color: { argb: COLOR_NAVY } };
 
     const AMBITOS = [
-      { id: 1, nombre: '1. Acceso No Autorizado', preguntas: [
-        'Controles de acceso por roles', 'Registro/monitoreo de accesos', 'Conexiones cifradas SSL/TLS',
-        'Autenticación multifactor', 'Auditoría de permisos'] },
-      { id: 2, nombre: '2. Destrucción de Datos', preguntas: [
-        'Backups regulares', 'Backups probados periódicamente', 'Backups en ubicación física distinta',
-        'Plan de recuperación ante desastres', 'Procedimientos de backup documentados'] },
-      { id: 3, nombre: '3. Alteración de Datos', preguntas: [
-        'Auditoría de cambios', 'Validaciones de integridad', 'Cambios requieren autorización',
-        'Historial de modificaciones', 'Detección de cambios anómalos'] },
-      { id: 4, nombre: '4. No Disponibilidad', preguntas: [
-        'Redundancia de infraestructura', 'Plan de continuidad', 'Monitoreo de tiempos de respuesta',
-        'Mantenimiento preventivo', 'SLA definidos'] },
+      { id: 1, letra: 'A', nombre: 'Red y recursos técnicos', preguntas: [
+        '¿Hay alguna parte del tratamiento de datos personales que se realice por internet?',
+        '¿Es posible dar acceso a un sistema interno de tratamiento de datos personales por internet (por ejemplo, a algunos usuarios o grupos de interés)?',
+        '¿El sistema de tratamiento de datos personales está interconectado a otro sistema o servicio TIC externo o interno (de su organización)?',
+        '¿Pueden los individuos no autorizados acceder fácilmente al entorno de tratamiento de datos?',
+        '¿Se diseña, implementa o mantiene el sistema de tratamiento de datos personales sin seguir las mejores prácticas?',
+      ]},
+      { id: 2, letra: 'B', nombre: 'Procesos y procedimientos', preguntas: [
+        '¿Los roles y responsabilidades con respecto a tratamiento de datos personales son superficiales o no están claramente definidos?',
+        '¿El uso aceptable de la red, sistema y recursos físicos a nivel interno de la organización es ambiguo o está definido de forma poco clara?',
+        '¿Se permite que los empleados aporten y usen sus propias herramientas para conectarse al sistema de tratamiento de datos personales?',
+        '¿Se permite a los empleados transferir, almacenar o realizar otro tipo de tratamiento de datos personales fuera de las instalaciones de la organización?',
+        '¿Pueden llevarse a cabo actividades de tratamiento de datos personales sin crear archivos de acceso?',
+      ]},
+      { id: 3, letra: 'C', nombre: 'Partes y personas involucradas', preguntas: [
+        '¿El tratamiento de datos personales es llevado a cabo por un número no definido de empleados?',
+        '¿Alguna parte de la operación de tratamiento de datos la lleva a cabo un contratista/tercero (encargado de datos)?',
+        '¿Las obligaciones de las partes/personas involucradas en el tratamiento de datos personales son ambiguas o no son del todo claras?',
+        '¿El personal que participa en el tratamiento de datos personales no está familiarizado con asuntos de seguridad de la información?',
+        '¿Las personas/partes involucradas en la operación de tratamiento de datos olvidan almacenar o destruir de forma segura datos personales?',
+      ]},
+      { id: 4, letra: 'D', nombre: 'Sector de negocio y escala', preguntas: [
+        '¿Considera que su sector de negocio es propenso a ciberataques?',
+        '¿Ha sufrido su organización algún ciberataque u otro tipo de brecha de seguridad en los dos últimos años?',
+        '¿Ha recibido notificaciones o quejas con respecto a la seguridad del sistema TI (utilizado para el tratamiento de datos personales) durante el último año?',
+        '¿Una operación de tratamiento implica a un amplio volumen de individuos o datos personales?',
+        '¿Existen mejores prácticas de seguridad específicas para su sector de negocio que no se hayan seguido adecuadamente?',
+      ]},
     ];
 
-    let r = 5;
+    const nivelPorCantidad = (n) => (n <= 1 ? 'Bajo' : n <= 3 ? 'Medio' : 'Alto');
+
+    let r = 4;
+    let totalSiGlobal = 0;
     AMBITOS.forEach((amb) => {
       ws.mergeCells(r, 1, r, 3);
-      ws.getCell(r, 1).value = amb.nombre;
+      ws.getCell(r, 1).value = `${amb.letra}. ${amb.nombre}`;
       ws.getCell(r, 1).font = { bold: true, color: { argb: COLOR_WHITE } };
       ws.getCell(r, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GOLD } };
       r++;
+      let cantidadSi = 0;
       amb.preguntas.forEach((preg, i) => {
         const key = `ambito_${amb.id}_q_${i + 1}`;
+        const val = siNo(am[key]);
+        if (val === 'SÍ') cantidadSi++;
+        ws.getCell(r, 1).value = `${amb.letra}.${i + 1}`;
         ws.getCell(r, 2).value = preg;
-        ws.getCell(r, 3).value = siNo(am[key]);
+        ws.getCell(r, 3).value = val;
         r++;
       });
-      r++;
+      totalSiGlobal += cantidadSi;
+      ws.getCell(r, 2).value = `Cantidad de respuestas "Sí": ${cantidadSi}  →  Nivel: ${nivelPorCantidad(cantidadSi)}`;
+      ws.getCell(r, 2).font = { bold: true, italic: true, size: 9 };
+      r += 2;
     });
+
+    const nivelGlobal = totalSiGlobal <= 5 ? 'Bajo' : totalSiGlobal <= 8 ? 'Medio' : 'Alto';
+    ws.mergeCells(r, 1, r, 3);
+    ws.getCell(r, 1).value = 'EVALUACIÓN DEL RIESGO GLOBAL';
+    ws.getCell(r, 1).font = { bold: true, color: { argb: COLOR_WHITE } };
+    ws.getCell(r, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_NAVY } };
+    r++;
+    ws.getCell(r, 2).value = `Sumatoria global: ${totalSiGlobal} de 20  →  Nivel de probabilidad de que ocurra una amenaza: ${nivelGlobal}`;
+    ws.getCell(r, 2).font = { bold: true, size: 10, color: { argb: COLOR_NAVY } };
   }
 
   // ===== FINALIDAD =====
