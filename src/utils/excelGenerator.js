@@ -26,7 +26,6 @@ import ExcelJS from 'exceljs';
 const COLOR_NAVY = 'FF1B2A4A';
 const COLOR_GOLD = 'FFC9A84C';
 const COLOR_WHITE = 'FFFFFFFF';
-const COLOR_LIGHT = 'FFF2F3F5';
 
 // ---------- Helpers de estilo ----------
 

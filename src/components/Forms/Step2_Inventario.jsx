@@ -53,7 +53,7 @@ const UBICACIONES_FIJAS = UBICACIONES.slice(0, -1); // sin "Otro..."
 
 export default function Step2_Inventario({ data = {}, onChange, subsanacion }) {
   const [bases, setBases] = useState(data.bases || []);
-  const [errors, setErrors] = useState({});
+  const [errors] = useState({});
   // Filas cuyo campo Ubicación está en modo "Otro..." (texto libre)
   const [ubicOtro, setUbicOtro] = useState({});
 
@@ -117,17 +117,6 @@ export default function Step2_Inventario({ data = {}, onChange, subsanacion }) {
         bd.id === id ? { ...bd, [campo]: valor } : bd
       )
     );
-  };
-
-  /**
-   * Validar fila
-   */
-  const validarFila = (bd) => {
-    const filErrors = {};
-    if (!bd.nombre.trim()) filErrors.nombre = 'Requerido';
-    if (!bd.gestor) filErrors.gestor = 'Requerido';
-    if (!bd.tipo) filErrors.tipo = 'Requerido';
-    return filErrors;
   };
 
   return (
