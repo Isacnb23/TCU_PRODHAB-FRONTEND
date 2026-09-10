@@ -25,6 +25,9 @@ export default function GestionUsuarios() {
   const [mensaje, setMensaje] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   const [desactivandoId, setDesactivandoId] = useState(null);
+  const [reseteandoId, setReseteandoId] = useState(null);
+  const [passwordModal, setPasswordModal] = useState(null); // { nombre, password } | null
+  const [copiado, setCopiado] = useState(false);
 
   async function cargar() {
     setLoading(true);
@@ -64,6 +67,41 @@ export default function GestionUsuarios() {
     } finally {
       setDesactivandoId(null);
     }
+  }
+
+  async function handleResetearPassword(usuario) {
+    const confirmado = window.confirm(
+      `¿Generar una nueva contraseña temporal para ${usuario.nombre}?`
+    );
+    if (!confirmado) return;
+
+    setError('');
+    setMensaje('');
+    setReseteandoId(usuario.id);
+    try {
+      const { passwordTemporal } = await usuarioService.resetearPassword(usuario.id);
+      setPasswordModal({ nombre: usuario.nombre, password: passwordTemporal });
+    } catch (err) {
+      setError(err.message || 'No se pudo restablecer la contraseña');
+    } finally {
+      setReseteandoId(null);
+    }
+  }
+
+  async function handleCopiarPassword() {
+    if (!passwordModal) return;
+    try {
+      await navigator.clipboard.writeText(passwordModal.password);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Si el navegador bloquea el portapapeles, el campo sigue seleccionable para copiar a mano.
+    }
+  }
+
+  function cerrarPasswordModal() {
+    setPasswordModal(null);
+    setCopiado(false);
   }
 
   return (
@@ -138,14 +176,24 @@ export default function GestionUsuarios() {
                   <td className="px-5 py-3 text-gray-500">{formatFecha(usuario.fechaCreacion)}</td>
                   <td className="px-5 py-3 text-right">
                     {usuario.activo ? (
-                      <button
-                        type="button"
-                        onClick={() => handleDesactivar(usuario)}
-                        disabled={desactivandoId === usuario.id}
-                        className="text-xs font-semibold text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50 disabled:opacity-50 transition-colors"
-                      >
-                        {desactivandoId === usuario.id ? 'Desactivando...' : 'Desactivar'}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleResetearPassword(usuario)}
+                          disabled={reseteandoId === usuario.id}
+                          className="text-xs font-semibold text-[#1B2A4A] border border-[#1B2A4A]/20 rounded-lg px-3 py-1.5 hover:bg-[#1B2A4A]/5 disabled:opacity-50 transition-colors"
+                        >
+                          {reseteandoId === usuario.id ? 'Generando...' : 'Restablecer contraseña'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDesactivar(usuario)}
+                          disabled={desactivandoId === usuario.id}
+                          className="text-xs font-semibold text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                        >
+                          {desactivandoId === usuario.id ? 'Desactivando...' : 'Desactivar'}
+                        </button>
+                      </div>
                     ) : (
                       <span className="text-xs text-gray-400">—</span>
                     )}
@@ -159,6 +207,44 @@ export default function GestionUsuarios() {
 
       {modalAbierto && (
         <NuevoUsuarioModal onClose={() => setModalAbierto(false)} onCreado={handleCreado} />
+      )}
+
+      {passwordModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-semibold text-[#1B2A4A] mb-2">Contraseña temporal generada</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Para <strong>{passwordModal.nombre}</strong>.{' '}
+              <strong>Copiá esta contraseña ahora — no se va a volver a mostrar.</strong>{' '}
+              Comunicásela al usuario por un canal seguro.
+            </p>
+            <div className="flex items-center gap-2 mb-6">
+              <input
+                type="text"
+                readOnly
+                value={passwordModal.password}
+                onFocus={(e) => e.target.select()}
+                className="flex-1 font-mono text-sm border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 select-all"
+              />
+              <button
+                type="button"
+                onClick={handleCopiarPassword}
+                className="px-3 py-2 rounded-lg text-xs font-semibold text-[#1B2A4A] border-2 border-[#1B2A4A]/20 hover:bg-[#1B2A4A]/5 transition-all whitespace-nowrap"
+              >
+                {copiado ? 'Copiado ✓' : 'Copiar'}
+              </button>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={cerrarPasswordModal}
+                className="px-5 py-2.5 rounded-xl font-semibold text-white bg-[#1B2A4A] hover:bg-[#243761] transition-all"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
