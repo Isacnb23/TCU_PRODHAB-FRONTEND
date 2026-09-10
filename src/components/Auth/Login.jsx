@@ -15,8 +15,10 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/expedientes', { replace: true });
+      const loggedUser = await login(email, password);
+      // El Admin aterriza en la Bandeja de Revisión (su punto de partida habitual);
+      // sigue teniendo acceso completo a "Expedientes" navegando ahí manualmente.
+      navigate(loggedUser?.rol === 'Admin' ? '/revision' : '/expedientes', { replace: true });
     } catch (err) {
       setError(err.message || 'Credenciales inválidas');
       setLoading(false);

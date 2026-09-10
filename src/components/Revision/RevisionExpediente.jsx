@@ -98,6 +98,10 @@ export default function RevisionExpediente() {
     });
   }, [expediente]);
 
+  const { texto: textoEstado, color: colorReenvio } = expediente
+    ? etiquetaEstado(expediente.estado, user?.rol, expediente.tieneObservacionesPrevias)
+    : { texto: '', color: null };
+
   const puedeActuar = expediente?.estado === 'Enviado';
   const completados = pasos.filter((p) => p.completado).length;
   const progresoPct = pasos.length ? (completados / pasos.length) * 100 : 0;
@@ -216,10 +220,10 @@ export default function RevisionExpediente() {
             </div>
             <span
               className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold border ${
-                ESTADO_BADGE[expediente.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
+                colorReenvio || ESTADO_BADGE[expediente.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
               }`}
             >
-              {etiquetaEstado(expediente.estado, user?.rol)}
+              {textoEstado}
             </span>
           </div>
 
@@ -364,7 +368,7 @@ export default function RevisionExpediente() {
         ) : (
           <p className="text-sm text-gray-500">
             Este expediente está en estado{' '}
-            <span className="font-semibold text-gray-700">{etiquetaEstado(expediente.estado, user?.rol)}</span>:
+            <span className="font-semibold text-gray-700">{textoEstado}</span>:
             no admite acciones de revisión en este momento.
           </p>
         )}

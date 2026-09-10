@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import SubsanacionArea from './SubsanacionArea';
 
@@ -34,18 +35,22 @@ export default function CampoObservacion({
   return (
     <div className="mt-2 space-y-2">
       {observacionesCampo.map((obs) => (
-        <div
+        <motion.div
           key={obs.id}
-          className="flex items-start gap-2 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="flex items-start gap-2.5 text-xs bg-amber-100/80 border border-amber-300 border-l-4 border-l-amber-500 rounded-lg px-3 py-2.5 shadow-sm"
         >
-          <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+          <AlertTriangle size={18} className="flex-shrink-0 mt-0.5 text-amber-600" />
           <div>
-            <p>
-              <span className="font-semibold">Observación del Admin:</span> {obs.texto}
+            <p className="font-bold uppercase tracking-wide text-amber-900 text-[11px] mb-0.5">
+              Observación de PRODHAB
             </p>
+            <p className="text-amber-900">{obs.texto}</p>
             <p className="text-[11px] text-amber-600 mt-0.5">{formatFechaHora(obs.fechaCreacion)}</p>
           </div>
-        </div>
+        </motion.div>
       ))}
 
       {puedeSubsanar && (
