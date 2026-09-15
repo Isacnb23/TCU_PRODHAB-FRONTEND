@@ -105,7 +105,7 @@ export default function RevisionBandeja() {
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm whitespace-nowrap">
             <thead className="bg-[#1B2A4A]/5 text-[#1B2A4A] text-xs uppercase tracking-wide">
               <tr>
                 <th className="text-left px-5 py-3">Entidad</th>

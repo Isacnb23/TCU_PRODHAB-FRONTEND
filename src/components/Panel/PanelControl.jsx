@@ -98,7 +98,7 @@ export default function PanelControl() {
         <p className="text-sm text-gray-500">Resumen general del sistema · Ley 8968</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Columna izquierda: Usuarios */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
@@ -141,7 +141,7 @@ export default function PanelControl() {
               <div className="text-center text-sm text-gray-500 py-10">No hay usuarios para este filtro.</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm whitespace-nowrap">
                   <thead className="text-[#1B2A4A] text-xs uppercase tracking-wide">
                     <tr>
                       <th className="text-left py-2">Nombre</th>
@@ -217,7 +217,7 @@ export default function PanelControl() {
               <div className="text-center text-sm text-gray-500 py-10">No hay expedientes para este filtro.</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm whitespace-nowrap">
                   <thead className="text-[#1B2A4A] text-xs uppercase tracking-wide">
                     <tr>
                       <th className="text-left py-2">Entidad</th>

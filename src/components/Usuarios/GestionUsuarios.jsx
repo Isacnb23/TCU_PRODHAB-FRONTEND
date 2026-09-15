@@ -101,7 +101,7 @@ export default function GestionUsuarios() {
         <div className="text-center text-sm text-gray-500 py-16">Cargando usuarios...</div>
       ) : error && usuarios.length === 0 ? null : (
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm whitespace-nowrap">
             <thead className="bg-[#1B2A4A]/5 text-[#1B2A4A] text-xs uppercase tracking-wide">
               <tr>
                 <th className="text-left px-5 py-3">Nombre</th>
