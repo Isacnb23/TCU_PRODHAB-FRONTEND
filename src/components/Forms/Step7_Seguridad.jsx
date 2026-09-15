@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, Plus, Shield, Lock, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
+import { Trash2, Plus, Lock, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import InfoBanner from '../Common/InfoBanner';
 import StepSummary from '../Common/StepSummary';
 import CampoObservacion from '../Wizard/CampoObservacion';

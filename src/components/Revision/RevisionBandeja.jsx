@@ -116,7 +116,13 @@ export default function RevisionBandeja() {
               </tr>
             </thead>
             <tbody>
-              {expedientes.map((exp) => (
+              {expedientes.map((exp) => {
+                const { texto: textoEstado, color: colorReenvio } = etiquetaEstado(
+                  exp.estado,
+                  user?.rol,
+                  exp.tieneObservacionesPrevias
+                );
+                return (
                 <tr
                   key={exp.id}
                   onClick={() => navigate(`/revision/${exp.id}`)}
@@ -127,10 +133,10 @@ export default function RevisionBandeja() {
                   <td className="px-5 py-3">
                     <span
                       className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                        ESTADO_BADGE[exp.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
+                        colorReenvio || ESTADO_BADGE[exp.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
                       }`}
                     >
-                      {etiquetaEstado(exp.estado, user?.rol)}
+                      {textoEstado}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-gray-500">{formatFecha(exp.fechaModificacion)}</td>
@@ -141,7 +147,8 @@ export default function RevisionBandeja() {
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

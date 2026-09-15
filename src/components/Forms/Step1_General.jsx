@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import InputField from '../Common/InputField';
-import Dropdown from '../Common/Dropdown';
 import FileUpload from '../Common/FileUpload';
 import Tooltip from '../Common/Tooltip';
 import InfoBanner from '../Common/InfoBanner';
@@ -189,17 +187,6 @@ export default function Step1_General({ data = {}, onChange, subsanacion }) {
    */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    validateField(name, value);
-  };
-
-  /**
-   * Maneja cambios en dropdowns
-   */
-  const handleDropdownChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,

@@ -165,7 +165,13 @@ export default function WizardPage() {
     <div className="h-screen flex flex-col bg-[#F7F3EA]">
       <Header mostrarVolverExpedientes />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        <Sidebar
+          currentStep={currentStep}
+          setCurrentStep={setCurrentStep}
+          estado={estado}
+          observaciones={observaciones}
+          subsanaciones={subsanaciones}
+        />
         <main className="flex-1 overflow-y-auto bg-[#F1EBDD] p-8">
           <WizardContainer
             currentStep={currentStep}

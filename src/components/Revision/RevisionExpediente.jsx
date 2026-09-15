@@ -8,6 +8,22 @@ import AprobarModal from './AprobarModal';
 import { PASO_TITULOS, parsearDatosJson } from '../../utils/revisionDisplay';
 import { useAuth } from '../../context/AuthContext';
 import { etiquetaEstado } from '../../utils/estadoLabel';
+import { generarExcelProtocolo } from '../../utils/excelGenerator';
+import logoPrograma from '../../assets/logos/Logo_Agencia_Azul_Dorado_PNG.png';
+
+// Mismo orden de claves que usa el wizard (WizardContainer/pasoMapper) para construir
+// el formData que espera generarExcelProtocolo: step{N}_{nombre}.
+const NOMBRES_PASO = [
+  'general',
+  'inventario',
+  'amenazas',
+  'finalidad',
+  'transferencia',
+  'riesgos',
+  'seguridad',
+  'adicionales',
+  'revision',
+];
 
 const ESTADO_BADGE = {
   Borrador: 'bg-gray-100 text-gray-700 border-gray-300',
@@ -60,6 +76,7 @@ export default function RevisionExpediente() {
   const [numeroSugerido, setNumeroSugerido] = useState('');
   const [enviandoSubsanacion, setEnviandoSubsanacion] = useState(false);
   const [errorAccion, setErrorAccion] = useState('');
+  const [generandoExcel, setGenerandoExcel] = useState(false);
 
   async function cargar() {
     setLoading(true);
@@ -97,6 +114,10 @@ export default function RevisionExpediente() {
       };
     });
   }, [expediente]);
+
+  const { texto: textoEstado, color: colorReenvio } = expediente
+    ? etiquetaEstado(expediente.estado, user?.rol, expediente.tieneObservacionesPrevias)
+    : { texto: '', color: null };
 
   const puedeActuar = expediente?.estado === 'Enviado';
   const completados = pasos.filter((p) => p.completado).length;
@@ -168,6 +189,21 @@ export default function RevisionExpediente() {
     }
   }
 
+  async function handleDescargarExcel() {
+    setGenerandoExcel(true);
+    setErrorAccion('');
+    try {
+      const formDataParaExcel = Object.fromEntries(
+        pasos.map((p) => [`step${p.paso}_${NOMBRES_PASO[p.paso - 1]}`, p.datos || {}])
+      );
+      await generarExcelProtocolo(formDataParaExcel, expediente, logoPrograma);
+    } catch (err) {
+      setErrorAccion(err.message || 'No se pudo generar el Excel');
+    } finally {
+      setGenerandoExcel(false);
+    }
+  }
+
   async function handleDescargar(sub) {
     try {
       await subsanacionService.descargarArchivo(id, sub.id, sub.archivoNombre);
@@ -216,10 +252,10 @@ export default function RevisionExpediente() {
             </div>
             <span
               className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold border ${
-                ESTADO_BADGE[expediente.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
+                colorReenvio || ESTADO_BADGE[expediente.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
               }`}
             >
-              {etiquetaEstado(expediente.estado, user?.rol)}
+              {textoEstado}
             </span>
           </div>
 
@@ -361,10 +397,30 @@ export default function RevisionExpediente() {
               </button>
             </div>
           </div>
+        ) : expediente.estado === 'Aprobado' ? (
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <p className="text-sm font-semibold text-[#1B2A4A]">Expediente aprobado</p>
+              <p className="text-xs text-gray-500 mt-0.5 max-w-md">
+                Nº {expediente.numeroExpediente}. Podés descargar el protocolo completo en Excel.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleDescargarExcel}
+              disabled={generandoExcel}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white transition-all ${
+                generandoExcel ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20'
+              }`}
+            >
+              <Download className="w-4 h-4" />
+              {generandoExcel ? 'Generando Excel...' : 'Descargar Protocolo (Excel)'}
+            </button>
+          </div>
         ) : (
           <p className="text-sm text-gray-500">
             Este expediente está en estado{' '}
-            <span className="font-semibold text-gray-700">{etiquetaEstado(expediente.estado, user?.rol)}</span>:
+            <span className="font-semibold text-gray-700">{textoEstado}</span>:
             no admite acciones de revisión en este momento.
           </p>
         )}

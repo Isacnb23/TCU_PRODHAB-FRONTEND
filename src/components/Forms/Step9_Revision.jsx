@@ -325,18 +325,6 @@ export default function Step9_Revision({ data = {}, onEnviar, puedeEnviar, readO
           )}
         </div>
       )}
-
-      {/* Contacto PRODHAB */}
-      <div className="bg-primary-50 border border-primary-300 rounded-lg p-4 text-xs text-primary-800">
-        <p className="font-semibold mb-1">📞 Soporte PRODHAB</p>
-        <p>
-          <strong>Supervisora:</strong> MSc. Wendy Rivera Román
-        </p>
-        <p>
-          <strong>Email:</strong> rrhh@prodhab.go.cr |{' '}
-          <strong>Tel:</strong> 2234-0189 ext 115
-        </p>
-      </div>
     </motion.div>
   );
 }

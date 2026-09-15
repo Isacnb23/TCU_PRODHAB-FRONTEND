@@ -33,7 +33,7 @@ const PASOS = [
   { id: 9, nombre: 'Revisión', icono: CheckCircle2 },
 ];
 
-export default function Sidebar({ currentStep, setCurrentStep }) {
+export default function Sidebar({ currentStep, setCurrentStep, estado, observaciones = [], subsanaciones = [] }) {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -46,6 +46,23 @@ export default function Sidebar({ currentStep, setCurrentStep }) {
       if (id) navigate(`/expedientes/${id}`);
     }
   };
+
+  // Indicador de observación por paso: solo aplica en RequiereSubsanacion.
+  // Mismo criterio que ya usa ObservarCampo.jsx para "Subsanado" — una
+  // observación está resuelta si existe al menos una subsanación con su
+  // mismo paso+campo. Si el paso tiene observaciones y TODAS ya fueron
+  // subsanadas, se marca en verde; si queda al menos una pendiente, en ámbar.
+  const mostrarIndicadorObservaciones = estado === 'RequiereSubsanacion';
+
+  function indicadorObservacionPaso(pasoId) {
+    if (!mostrarIndicadorObservaciones) return null;
+    const observacionesDelPaso = observaciones.filter((o) => o.paso === pasoId);
+    if (observacionesDelPaso.length === 0) return null;
+    const todasSubsanadas = observacionesDelPaso.every((o) =>
+      subsanaciones.some((s) => s.paso === o.paso && s.campo === o.campo)
+    );
+    return todasSubsanadas ? 'subsanado' : 'pendiente';
+  }
 
   return (
     <aside className="w-64 flex-shrink-0 bg-[#1B2A4A] overflow-y-auto flex flex-col">
@@ -62,6 +79,7 @@ export default function Sidebar({ currentStep, setCurrentStep }) {
             const isActive = paso.id === currentStep;
             const isCompleted = paso.id < currentStep;
             const canClick = paso.id < currentStep;
+            const indicadorObs = indicadorObservacionPaso(paso.id);
 
             return (
               <button
@@ -96,7 +114,7 @@ export default function Sidebar({ currentStep, setCurrentStep }) {
 
                 {/* Nombre del paso */}
                 <span
-                  className={`flex-1 text-left text-sm
+                  className={`flex-1 flex items-center gap-1.5 text-left text-sm
                     ${
                       isActive
                         ? 'text-white font-semibold'
@@ -106,6 +124,18 @@ export default function Sidebar({ currentStep, setCurrentStep }) {
                     }`}
                 >
                   {paso.nombre}
+                  {indicadorObs === 'pendiente' && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"
+                      title="Tiene una observación pendiente de subsanar"
+                    />
+                  )}
+                  {indicadorObs === 'subsanado' && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0"
+                      title="Observación ya subsanada"
+                    />
+                  )}
                 </span>
 
                 {/* Indicador a la derecha: número / check / dot activo */}

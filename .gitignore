@@ -28,3 +28,6 @@ logs/
 
 # Cache
 .eslintcache
+
+# Contexto local de Claude Code (no se trackea, pero se mantiene en disco)
+CLAUDE.md

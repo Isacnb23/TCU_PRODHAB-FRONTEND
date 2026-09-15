@@ -20,7 +20,7 @@ import {
 import * as expedienteService from '../../services/expedienteService';
 import * as usuarioService from '../../services/usuarioService';
 import { useAuth } from '../../context/AuthContext';
-import { etiquetaEstado, claseEstado } from '../../utils/estadoLabel';
+import { etiquetaEstado } from '../../utils/estadoLabel';
 import SelectEstilizado from '../Common/SelectEstilizado';
 import NuevoUsuarioModal from '../Usuarios/NuevoUsuarioModal';
 import NuevoExpedienteModal from '../Expedientes/NuevoExpedienteModal';
@@ -38,6 +38,14 @@ const ROL_DOT = {
 const ESTADO_BADGE_USUARIO = {
   activo: 'bg-green-50 text-green-700 border-green-200',
   inactivo: 'bg-gray-100 text-gray-500 border-gray-200',
+};
+
+const ESTADO_BADGE_EXPEDIENTE = {
+  Borrador: 'bg-gray-100 text-gray-700 border-gray-300',
+  Enviado: 'bg-blue-50 text-blue-700 border-blue-200',
+  EnRevision: 'bg-amber-50 text-amber-700 border-amber-200',
+  RequiereSubsanacion: 'bg-red-50 text-red-700 border-red-200',
+  Aprobado: 'bg-green-50 text-green-700 border-green-200',
 };
 
 const AVATAR_COLORES = [
@@ -388,7 +396,13 @@ export default function PanelControl() {
                     </tr>
                   </thead>
                   <tbody>
-                    {expedientesPagina.map((exp) => (
+                    {expedientesPagina.map((exp) => {
+                      const { texto: textoEstado, color: colorReenvio } = etiquetaEstado(
+                        exp.estado,
+                        user?.rol,
+                        exp.tieneObservacionesPrevias
+                      );
+                      return (
                       <tr
                         key={exp.id}
                         onClick={() => navigate(`/revision/${exp.id}`)}
@@ -400,17 +414,17 @@ export default function PanelControl() {
                         <td className="py-3 px-4 text-gray-500">{exp.anio}</td>
                         <td className="py-3 px-4">
                           <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${claseEstado(
-                              exp.estado,
-                              exp.tieneObservacionesPrevias
-                            )}`}
+                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                              colorReenvio || ESTADO_BADGE_EXPEDIENTE[exp.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
+                            }`}
                           >
-                            {etiquetaEstado(exp.estado, user?.rol, exp.tieneObservacionesPrevias)}
+                            {textoEstado}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-gray-400">{formatFecha(exp.fechaModificacion)}</td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
                 <Paginador

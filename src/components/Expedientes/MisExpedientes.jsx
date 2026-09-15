@@ -135,6 +135,11 @@ export default function MisExpedientes() {
             <tbody>
               {expedientesOrdenados.map((exp) => {
                 const requiereSubsanacion = exp.estado === 'RequiereSubsanacion';
+                const { texto: textoEstado, color: colorReenvio } = etiquetaEstado(
+                  exp.estado,
+                  user?.rol,
+                  exp.tieneObservacionesPrevias
+                );
                 return (
                 <tr
                   key={exp.id}
@@ -161,10 +166,10 @@ export default function MisExpedientes() {
                   <td className="px-5 py-3">
                     <span
                       className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                        ESTADO_BADGE[exp.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
+                        colorReenvio || ESTADO_BADGE[exp.estado] || 'bg-gray-100 text-gray-700 border-gray-300'
                       }`}
                     >
-                      {etiquetaEstado(exp.estado, user?.rol)}
+                      {textoEstado}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-gray-600">Paso {exp.pasoActual} de 9</td>
