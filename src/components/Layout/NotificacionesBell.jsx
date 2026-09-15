@@ -99,12 +99,12 @@ export default function NotificacionesBell() {
       <button
         type="button"
         onClick={handleToggle}
-        className="relative text-white/80 hover:text-white transition-colors p-1"
+        className="relative flex items-center justify-center w-9 h-9 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
         title="Notificaciones"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="w-[18px] h-[18px]" />
         {noLeidas > 0 && (
-          <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+          <span className="absolute top-1 right-1 flex items-center justify-center min-w-[17px] h-[17px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none ring-2 ring-[#1B2A4A]">
             {noLeidas > 9 ? '9+' : noLeidas}
           </span>
         )}

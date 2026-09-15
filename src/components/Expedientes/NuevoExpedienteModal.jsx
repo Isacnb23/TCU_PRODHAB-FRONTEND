@@ -25,46 +25,53 @@ export default function NuevoExpedienteModal({ onClose, onCreado }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#1B2A4A]">Nuevo Expediente</h2>
-          <button onClick={onClose} disabled={creando} className="text-gray-400 hover:text-gray-600 disabled:opacity-50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-[#1B2A4A]">Nuevo Expediente</h2>
+            <p className="text-sm text-gray-500 mt-0.5">Empieza un protocolo de actuación.</p>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={creando}
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1.5 -mr-1.5 -mt-1.5 disabled:opacity-50 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la entidad</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de la entidad</label>
             <input
               type="text"
               value={entidad}
               onChange={(e) => setEntidad(e.target.value)}
               maxLength={300}
               placeholder="Ej: Ministerio de Prueba"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]/30 focus:border-[#1B2A4A] transition-colors"
               disabled={creando}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Año</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Año</label>
             <input
               type="number"
               value={anio}
               onChange={(e) => setAnio(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2A4A]/30 focus:border-[#1B2A4A] transition-colors"
               disabled={creando}
             />
           </div>
 
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
               {error}
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-3 mt-2 border-t border-gray-100">
             <button
               type="button"
               onClick={onClose}
