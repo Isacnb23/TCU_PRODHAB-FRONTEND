@@ -13,3 +13,9 @@ export function listar() {
 export function desactivar(id) {
   return apiPatch(`/usuarios/${id}/desactivar`);
 }
+
+// Devuelve { passwordTemporal }: el backend la genera y la muestra una única vez,
+// el Admin la copia y se la comparte al usuario por fuera del sistema.
+export function resetearPassword(id) {
+  return apiPatch(`/usuarios/${id}/resetear-password`);
+}

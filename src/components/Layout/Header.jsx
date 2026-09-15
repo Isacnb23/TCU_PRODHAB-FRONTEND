@@ -61,36 +61,16 @@ export default function Header({ mostrarVolverExpedientes = false }) {
               {etiquetaExpedientes}
             </Link>
           )}
+          {/* El Admin tiene un solo destino en el nav: el Panel concentra usuarios y
+              expedientes (crear, desactivar, resetear contraseña, crear expediente).
+              Expedientes/Revisión/Usuarios siguen existiendo como rutas (accesibles
+              desde el propio Panel o por URL), solo dejaron de ser links del menú. */}
           {user?.rol === 'Admin' && (
             <Link
               to="/panel"
               className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 whitespace-nowrap flex-shrink-0 hover:bg-[#C9A84C]/10 transition-all duration-200"
             >
               Panel
-            </Link>
-          )}
-          {user?.rol === 'Admin' && (
-            <Link
-              to="/expedientes"
-              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 whitespace-nowrap flex-shrink-0 hover:bg-[#C9A84C]/10 transition-all duration-200"
-            >
-              Expedientes
-            </Link>
-          )}
-          {user?.rol === 'Admin' && (
-            <Link
-              to="/revision"
-              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 whitespace-nowrap flex-shrink-0 hover:bg-[#C9A84C]/10 transition-all duration-200"
-            >
-              Revisión
-            </Link>
-          )}
-          {user?.rol === 'Admin' && (
-            <Link
-              to="/usuarios"
-              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 whitespace-nowrap flex-shrink-0 hover:bg-[#C9A84C]/10 transition-all duration-200"
-            >
-              Usuarios
             </Link>
           )}
           {user && (
