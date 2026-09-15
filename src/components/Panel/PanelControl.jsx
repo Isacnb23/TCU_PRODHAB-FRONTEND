@@ -364,11 +364,19 @@ export default function PanelControl() {
               </div>
             )}
 
-            {loadingExpedientes ? (
-              <div className="text-center text-sm text-gray-400 py-12">Cargando expedientes...</div>
-            ) : errorExpedientes ? null : expedientes.length === 0 ? (
-              <EstadoVacio icono={Inbox} texto="No hay expedientes para este filtro." />
-            ) : (
+            {/* min-h fijo: si un filtro deja pocos resultados (ej. 1 expediente),
+                la card no se achica — mantiene siempre el mismo alto de una
+                página completa, solo con espacio libre abajo de la tabla. */}
+            <div className="min-h-[26rem] flex flex-col">
+              {loadingExpedientes ? (
+                <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
+                  Cargando expedientes...
+                </div>
+              ) : errorExpedientes ? null : expedientes.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <EstadoVacio icono={Inbox} texto="No hay expedientes para este filtro." />
+                </div>
+              ) : (
               <div className="overflow-x-auto -mx-2">
                 <table className="w-full text-sm whitespace-nowrap">
                   <thead>
@@ -412,7 +420,8 @@ export default function PanelControl() {
                   onCambiar={setPaginaExpedientes}
                 />
               </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -485,11 +494,18 @@ export default function PanelControl() {
               </div>
             )}
 
-            {loadingUsuarios ? (
-              <div className="text-center text-sm text-gray-400 py-12">Cargando usuarios...</div>
-            ) : usuariosFiltrados.length === 0 ? (
-              <EstadoVacio icono={Users} texto="No hay usuarios para este filtro." />
-            ) : (
+            {/* Mismo min-h que Expedientes: filtrar a pocos usuarios (ej. solo Admin)
+                no debe achicar la card. */}
+            <div className="min-h-[26rem] flex flex-col">
+              {loadingUsuarios ? (
+                <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
+                  Cargando usuarios...
+                </div>
+              ) : usuariosFiltrados.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <EstadoVacio icono={Users} texto="No hay usuarios para este filtro." />
+                </div>
+              ) : (
               <div className="overflow-x-auto -mx-2">
                 <table className="w-full text-sm whitespace-nowrap">
                   <thead>
@@ -585,7 +601,8 @@ export default function PanelControl() {
                   onCambiar={setPaginaUsuarios}
                 />
               </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
