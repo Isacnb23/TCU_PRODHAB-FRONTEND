@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, FolderOpen, AlertCircle, CheckCircle2, UserPlus, FilePlus2, KeyRound, Copy, Check, X, UserX, ShieldCheck } from 'lucide-react';
+import {
+  Users,
+  FolderOpen,
+  AlertCircle,
+  CheckCircle2,
+  UserPlus,
+  FilePlus2,
+  KeyRound,
+  Copy,
+  Check,
+  X,
+  UserX,
+  ShieldCheck,
+  Inbox,
+} from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
 import * as usuarioService from '../../services/usuarioService';
 import { useAuth } from '../../context/AuthContext';
@@ -10,14 +24,33 @@ import NuevoUsuarioModal from '../Usuarios/NuevoUsuarioModal';
 import NuevoExpedienteModal from '../Expedientes/NuevoExpedienteModal';
 
 const ROL_BADGE = {
-  Admin: 'bg-[#1B2A4A]/10 text-[#1B2A4A] border-[#1B2A4A]/30',
+  Admin: 'bg-[#1B2A4A]/10 text-[#1B2A4A] border-[#1B2A4A]/20',
   Usuario: 'bg-blue-50 text-blue-700 border-blue-200',
+};
+
+const ROL_DOT = {
+  Admin: 'bg-[#1B2A4A]',
+  Usuario: 'bg-blue-500',
 };
 
 const ESTADO_BADGE_USUARIO = {
   activo: 'bg-green-50 text-green-700 border-green-200',
-  inactivo: 'bg-gray-100 text-gray-600 border-gray-300',
+  inactivo: 'bg-gray-100 text-gray-500 border-gray-200',
 };
+
+const AVATAR_COLORES = [
+  'bg-[#1B2A4A]/10 text-[#1B2A4A]',
+  'bg-amber-100 text-amber-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-sky-100 text-sky-700',
+  'bg-violet-100 text-violet-700',
+  'bg-rose-100 text-rose-700',
+];
+
+function colorAvatar(texto) {
+  const codigo = (texto || '').charCodeAt(0) || 0;
+  return AVATAR_COLORES[codigo % AVATAR_COLORES.length];
+}
 
 const OPCIONES_ROL = [
   { value: '', label: 'Todos' },
@@ -36,6 +69,45 @@ const OPCIONES_ESTADO_EXPEDIENTE = [
 function formatFecha(fecha) {
   if (!fecha) return '—';
   return new Date(fecha).toLocaleDateString('es-CR', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Encabezado de sección reutilizado por Expedientes y Usuarios: icono en badge de
+// color, título + conteo como subtítulo, y el botón de acción (Nuevo X) a la derecha.
+function EncabezadoSeccion({ icono: Icono, titulo, conteo, textoBoton, iconoBoton: IconoBoton, onClick }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-6 py-5 border-b border-gray-100">
+      <div className="flex items-center gap-3">
+        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#1B2A4A] text-white shadow-sm shadow-[#1B2A4A]/20">
+          <Icono className="w-5 h-5" />
+        </span>
+        <div>
+          <h2 className="font-bold text-[#1B2A4A] leading-tight">{titulo}</h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {conteo === 1 ? '1 registro' : `${conteo} registros`}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1B2A4A] hover:bg-[#243761] rounded-full pl-3.5 pr-4 py-2 shadow-sm shadow-[#1B2A4A]/20 hover:shadow-md hover:shadow-[#1B2A4A]/25 transition-all duration-200"
+      >
+        <IconoBoton className="w-3.5 h-3.5" />
+        {textoBoton}
+      </button>
+    </div>
+  );
+}
+
+function EstadoVacio({ icono: Icono, texto }) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-12">
+      <span className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-3">
+        <Icono className="w-6 h-6 text-gray-300" />
+      </span>
+      <p className="text-sm text-gray-400">{texto}</p>
+    </div>
+  );
 }
 
 export default function PanelControl() {
@@ -171,31 +243,25 @@ export default function PanelControl() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1B2A4A]">Panel de Control</h1>
-        <p className="text-sm text-gray-500">Resumen general del sistema · Ley 8968</p>
+      <div className="mb-7">
+        <h1 className="text-[26px] font-extrabold text-[#1B2A4A] tracking-tight">Panel de Control</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Resumen general del sistema · Ley 8968</p>
       </div>
 
       <div className="flex flex-col gap-6">
         {/* Expedientes primero: ancho completo (no en 2 columnas) para que ninguna
             tabla necesite su propio scroll horizontal. */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <FolderOpen className="w-4 h-4 text-[#1B2A4A]" />
-              <h2 className="font-semibold text-[#1B2A4A]">Expedientes</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setModalExpedienteAbierto(true)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1B2A4A] hover:bg-[#243761] rounded-lg px-3 py-1.5 transition-all duration-200"
-            >
-              <FilePlus2 className="w-3.5 h-3.5" />
-              Nuevo Expediente
-            </button>
-          </div>
+        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <EncabezadoSeccion
+            icono={FolderOpen}
+            titulo="Expedientes"
+            conteo={expedientes.length}
+            textoBoton="Nuevo Expediente"
+            iconoBoton={FilePlus2}
+            onClick={() => setModalExpedienteAbierto(true)}
+          />
 
-          <div className="px-5 pt-4">
+          <div className="px-6 pt-5">
             <div className="w-56">
               <SelectEstilizado value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
                 {OPCIONES_ESTADO_EXPEDIENTE.map((op) => (
@@ -207,34 +273,34 @@ export default function PanelControl() {
             </div>
           </div>
 
-          <div className="p-5 pt-3">
+          <div className="p-6 pt-4">
             {mensajeExpedientes && (
-              <div className="mb-3 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+              <div className="mb-4 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                 {mensajeExpedientes}
               </div>
             )}
 
             {errorExpedientes && (
-              <div className="mb-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+              <div className="mb-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {errorExpedientes}
               </div>
             )}
 
             {loadingExpedientes ? (
-              <div className="text-center text-sm text-gray-500 py-10">Cargando expedientes...</div>
+              <div className="text-center text-sm text-gray-400 py-12">Cargando expedientes...</div>
             ) : errorExpedientes ? null : expedientes.length === 0 ? (
-              <div className="text-center text-sm text-gray-500 py-10">No hay expedientes para este filtro.</div>
+              <EstadoVacio icono={Inbox} texto="No hay expedientes para este filtro." />
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto -mx-2">
                 <table className="w-full text-sm whitespace-nowrap">
-                  <thead className="text-[#1B2A4A] text-xs uppercase tracking-wide">
-                    <tr>
-                      <th className="text-left py-2 pr-4">Entidad</th>
-                      <th className="text-left py-2 px-4">Año</th>
-                      <th className="text-left py-2 px-4">Estado</th>
-                      <th className="text-left py-2 pl-4">Últ. modificación</th>
+                  <thead>
+                    <tr className="text-[#1B2A4A]/60 text-[11px] uppercase tracking-wider">
+                      <th className="text-left font-bold py-2.5 px-2">Entidad</th>
+                      <th className="text-left font-bold py-2.5 px-4">Año</th>
+                      <th className="text-left font-bold py-2.5 px-4">Estado</th>
+                      <th className="text-left font-bold py-2.5 px-4">Últ. modificación</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -242,11 +308,13 @@ export default function PanelControl() {
                       <tr
                         key={exp.id}
                         onClick={() => navigate(`/revision/${exp.id}`)}
-                        className="border-t border-gray-100 hover:bg-[#1B2A4A]/5 cursor-pointer transition-colors"
+                        className="group border-t border-gray-100 hover:bg-[#1B2A4A]/[0.03] cursor-pointer transition-colors"
                       >
-                        <td className="py-2.5 pr-4 font-medium text-gray-800">{exp.entidad}</td>
-                        <td className="py-2.5 px-4 text-gray-600">{exp.anio}</td>
-                        <td className="py-2.5 px-4">
+                        <td className="py-3 px-2 font-semibold text-gray-800 group-hover:text-[#1B2A4A] transition-colors">
+                          {exp.entidad}
+                        </td>
+                        <td className="py-3 px-4 text-gray-500">{exp.anio}</td>
+                        <td className="py-3 px-4">
                           <span
                             className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${claseEstado(
                               exp.estado,
@@ -256,7 +324,7 @@ export default function PanelControl() {
                             {etiquetaEstado(exp.estado, user?.rol, exp.tieneObservacionesPrevias)}
                           </span>
                         </td>
-                        <td className="py-2.5 pl-4 text-gray-500">{formatFecha(exp.fechaModificacion)}</td>
+                        <td className="py-3 px-4 text-gray-400">{formatFecha(exp.fechaModificacion)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -267,23 +335,17 @@ export default function PanelControl() {
         </div>
 
         {/* Usuarios debajo, también a ancho completo */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#1B2A4A]" />
-              <h2 className="font-semibold text-[#1B2A4A]">Usuarios</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setModalUsuarioAbierto(true)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1B2A4A] hover:bg-[#243761] rounded-lg px-3 py-1.5 transition-all duration-200"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              Nuevo Usuario
-            </button>
-          </div>
+        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <EncabezadoSeccion
+            icono={Users}
+            titulo="Usuarios"
+            conteo={usuariosFiltrados.length}
+            textoBoton="Nuevo Usuario"
+            iconoBoton={UserPlus}
+            onClick={() => setModalUsuarioAbierto(true)}
+          />
 
-          <div className="px-5 pt-4">
+          <div className="px-6 pt-5">
             <div className="w-40">
               <SelectEstilizado value={filtroRol} onChange={(e) => setFiltroRol(e.target.value)}>
                 {OPCIONES_ROL.map((op) => (
@@ -295,16 +357,16 @@ export default function PanelControl() {
             </div>
           </div>
 
-          <div className="p-5 pt-3">
+          <div className="p-6 pt-4">
             {mensajeUsuarios && (
-              <div className="mb-3 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+              <div className="mb-4 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                 {mensajeUsuarios}
               </div>
             )}
 
             {passwordTemporal && (
-              <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+              <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-xs text-amber-800">
                     Contraseña temporal para <strong>{passwordTemporal.usuario.nombre}</strong> (se muestra
@@ -313,19 +375,19 @@ export default function PanelControl() {
                   <button
                     type="button"
                     onClick={() => setPasswordTemporal(null)}
-                    className="text-amber-500 hover:text-amber-700 flex-shrink-0"
+                    className="text-amber-500 hover:text-amber-700 hover:bg-amber-100 rounded-full p-1 -mt-1 -mr-1 flex-shrink-0 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <code className="flex-1 bg-white border border-amber-300 rounded-md px-3 py-1.5 text-sm font-mono text-amber-900 select-all">
+                <div className="mt-2.5 flex items-center gap-2">
+                  <code className="flex-1 bg-white border border-amber-300 rounded-lg px-3.5 py-2 text-sm font-mono text-amber-900 select-all">
                     {passwordTemporal.password}
                   </code>
                   <button
                     type="button"
                     onClick={handleCopiarPassword}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 border border-amber-300 rounded-lg px-3 py-1.5 hover:bg-amber-100 transition-colors flex-shrink-0"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 border border-amber-300 rounded-lg px-3.5 py-2 hover:bg-amber-100 transition-colors flex-shrink-0"
                   >
                     {copiado ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiado ? 'Copiada' : 'Copiar'}
@@ -335,61 +397,74 @@ export default function PanelControl() {
             )}
 
             {errorUsuarios && (
-              <div className="mb-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+              <div className="mb-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {errorUsuarios}
               </div>
             )}
 
             {loadingUsuarios ? (
-              <div className="text-center text-sm text-gray-500 py-10">Cargando usuarios...</div>
+              <div className="text-center text-sm text-gray-400 py-12">Cargando usuarios...</div>
             ) : usuariosFiltrados.length === 0 ? (
-              <div className="text-center text-sm text-gray-500 py-10">No hay usuarios para este filtro.</div>
+              <EstadoVacio icono={Users} texto="No hay usuarios para este filtro." />
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto -mx-2">
                 <table className="w-full text-sm whitespace-nowrap">
-                  <thead className="text-[#1B2A4A] text-xs uppercase tracking-wide">
-                    <tr>
-                      <th className="text-left py-2 pr-4">Nombre</th>
-                      <th className="text-left py-2 px-4">Email</th>
-                      <th className="text-left py-2 px-4">Rol</th>
-                      <th className="text-left py-2 px-4">Estado</th>
-                      <th className="text-right py-2 pl-4">Acción</th>
+                  <thead>
+                    <tr className="text-[#1B2A4A]/60 text-[11px] uppercase tracking-wider">
+                      <th className="text-left font-bold py-2.5 px-2">Nombre</th>
+                      <th className="text-left font-bold py-2.5 px-4">Email</th>
+                      <th className="text-left font-bold py-2.5 px-4">Rol</th>
+                      <th className="text-left font-bold py-2.5 px-4">Estado</th>
+                      <th className="text-right font-bold py-2.5 px-2">Acción</th>
                     </tr>
                   </thead>
                   <tbody>
                     {usuariosFiltrados.map((usuario) => (
-                      <tr key={usuario.id} className="border-t border-gray-100">
-                        <td className="py-2.5 pr-4 font-medium text-gray-800">
-                          <span className="inline-flex items-center gap-1.5">
-                            {usuario.esSuperAdmin && (
-                              <ShieldCheck className="w-3.5 h-3.5 text-[#C9A84C] flex-shrink-0" />
-                            )}
-                            {usuario.nombre}
+                      <tr key={usuario.id} className="border-t border-gray-100 hover:bg-[#1B2A4A]/[0.03] transition-colors">
+                        <td className="py-3 px-2">
+                          <span className="inline-flex items-center gap-2.5">
+                            <span
+                              className={`flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-bold flex-shrink-0 ${colorAvatar(
+                                usuario.nombre
+                              )}`}
+                            >
+                              {(usuario.nombre || '?').trim().charAt(0).toUpperCase()}
+                            </span>
+                            <span className="font-semibold text-gray-800 inline-flex items-center gap-1">
+                              {usuario.nombre}
+                              {usuario.esSuperAdmin && (
+                                <ShieldCheck
+                                  className="w-3.5 h-3.5 text-[#C9A84C] flex-shrink-0"
+                                  title="Superusuario"
+                                />
+                              )}
+                            </span>
                           </span>
                         </td>
-                        <td className="py-2.5 px-4 text-gray-600" title={usuario.email}>
+                        <td className="py-3 px-4 text-gray-500" title={usuario.email}>
                           {usuario.email}
                         </td>
-                        <td className="py-2.5 px-4">
+                        <td className="py-3 px-4">
                           <span
-                            className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border ${
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
                               ROL_BADGE[usuario.rol] || 'bg-gray-100 text-gray-700 border-gray-300'
                             }`}
                           >
+                            <span className={`w-1.5 h-1.5 rounded-full ${ROL_DOT[usuario.rol] || 'bg-gray-400'}`} />
                             {usuario.rol}
                           </span>
                         </td>
-                        <td className="py-2.5 px-4">
+                        <td className="py-3 px-4">
                           <span
-                            className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border ${
+                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
                               usuario.activo ? ESTADO_BADGE_USUARIO.activo : ESTADO_BADGE_USUARIO.inactivo
                             }`}
                           >
                             {usuario.activo ? 'Activo' : 'Inactivo'}
                           </span>
                         </td>
-                        <td className="py-2.5 pl-4 text-right">
+                        <td className="py-3 px-2 text-right">
                           {usuario.activo ? (
                             <div className="flex items-center justify-end gap-1.5">
                               <button
@@ -414,7 +489,7 @@ export default function PanelControl() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-gray-300">—</span>
                           )}
                         </td>
                       </tr>
