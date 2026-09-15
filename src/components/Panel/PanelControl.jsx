@@ -389,7 +389,7 @@ export default function PanelControl() {
             {/* min-h fijo: si un filtro deja pocos resultados (ej. 1 expediente),
                 la card no se achica — mantiene siempre el mismo alto de una
                 página completa, solo con espacio libre abajo de la tabla. */}
-            <div className="min-h-[26rem] flex flex-col">
+            <div className="min-h-[600px] flex flex-col">
               {loadingExpedientes ? (
                 <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
                   Cargando expedientes...
@@ -529,7 +529,7 @@ export default function PanelControl() {
 
             {/* Mismo min-h que Expedientes: filtrar a pocos usuarios (ej. solo Admin)
                 no debe achicar la card. */}
-            <div className="min-h-[26rem] flex flex-col">
+            <div className="min-h-[600px] flex flex-col">
               {loadingUsuarios ? (
                 <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
                   Cargando usuarios...
