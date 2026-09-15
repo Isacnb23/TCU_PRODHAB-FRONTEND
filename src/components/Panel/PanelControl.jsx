@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Users, FolderOpen, AlertCircle, CheckCircle2, UserPlus, FilePlus2, KeyRound, Copy, Check, X, UserX, ShieldCheck } from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
 import * as usuarioService from '../../services/usuarioService';
@@ -27,6 +27,7 @@ const OPCIONES_ROL = [
 
 const OPCIONES_ESTADO_EXPEDIENTE = [
   { value: '', label: 'Todos' },
+  { value: 'Borrador', label: 'Borrador' },
   { value: 'Enviado', label: 'Pendientes de revisión' },
   { value: 'RequiereSubsanacion', label: 'Requiere Subsanación' },
   { value: 'Aprobado', label: 'Aprobados' },
@@ -39,6 +40,7 @@ function formatFecha(fecha) {
 
 export default function PanelControl() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   const [usuarios, setUsuarios] = useState([]);
@@ -57,6 +59,10 @@ export default function PanelControl() {
   const [errorExpedientes, setErrorExpedientes] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
   const [modalExpedienteAbierto, setModalExpedienteAbierto] = useState(false);
+  // Mensaje de éxito al volver de aprobar/solicitar subsanación en /revision/:id
+  // (esa pantalla ya no tiene su propia bandeja a la que volver, así que el
+  // mensaje viaja hasta acá por location.state, igual que hacía RevisionBandeja).
+  const [mensajeExpedientes, setMensajeExpedientes] = useState(location.state?.mensaje || '');
 
   function cargarUsuarios() {
     setLoadingUsuarios(true);
@@ -70,8 +76,19 @@ export default function PanelControl() {
 
   useEffect(() => {
     cargarUsuarios();
+    // Limpiar el mensaje del state para que no reaparezca en un refresh manual.
+    if (location.state?.mensaje) {
+      window.history.replaceState({}, '');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // El mensaje de éxito (aprobar/subsanar) es notorio pero no debe quedarse pegado para siempre.
+  useEffect(() => {
+    if (!mensajeExpedientes) return;
+    const timer = setTimeout(() => setMensajeExpedientes(''), 6000);
+    return () => clearTimeout(timer);
+  }, [mensajeExpedientes]);
 
   useEffect(() => {
     let cancelado = false;
@@ -350,6 +367,13 @@ export default function PanelControl() {
           </div>
 
           <div className="p-5 pt-3">
+            {mensajeExpedientes && (
+              <div className="mb-3 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                {mensajeExpedientes}
+              </div>
+            )}
+
             {errorExpedientes && (
               <div className="mb-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />

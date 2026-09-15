@@ -138,7 +138,7 @@ export default function RevisionExpediente() {
 
   async function handleAprobarConfirmar(numeroExpediente) {
     await expedienteService.aprobar(id, numeroExpediente);
-    navigate('/revision', { state: { mensaje: `Expediente aprobado con número ${numeroExpediente}.` } });
+    navigate('/panel', { state: { mensaje: `Expediente aprobado con número ${numeroExpediente}.` } });
   }
 
   async function handleSolicitarSubsanacion() {
@@ -159,7 +159,7 @@ export default function RevisionExpediente() {
     setEnviandoSubsanacion(true);
     try {
       await expedienteService.solicitarSubsanacion(id, observaciones);
-      navigate('/revision', {
+      navigate('/panel', {
         state: { mensaje: `Se solicitó la subsanación en ${observaciones.length} paso(s).` },
       });
     } catch (err) {
@@ -193,11 +193,11 @@ export default function RevisionExpediente() {
     <div className="max-w-4xl mx-auto pb-24">
       <button
         type="button"
-        onClick={() => navigate('/revision')}
+        onClick={() => navigate('/panel')}
         className="flex items-center gap-1.5 text-sm text-[#1B2A4A]/70 hover:text-[#1B2A4A] mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
-        Volver a la bandeja
+        Volver al Panel
       </button>
 
       {/* Encabezado */}
