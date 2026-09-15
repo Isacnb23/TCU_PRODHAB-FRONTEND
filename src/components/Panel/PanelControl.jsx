@@ -14,6 +14,8 @@ import {
   UserX,
   ShieldCheck,
   Inbox,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
 import * as usuarioService from '../../services/usuarioService';
@@ -66,6 +68,8 @@ const OPCIONES_ESTADO_EXPEDIENTE = [
   { value: 'Aprobado', label: 'Aprobados' },
 ];
 
+const FILAS_POR_PAGINA = 8;
+
 function formatFecha(fecha) {
   if (!fecha) return '—';
   return new Date(fecha).toLocaleDateString('es-CR', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -110,6 +114,45 @@ function EstadoVacio({ icono: Icono, texto }) {
   );
 }
 
+// Paginador reutilizado por Expedientes y Usuarios: para que la tabla no crezca sin
+// límite a medida que se acumulan registros, se corta en páginas fijas en vez de
+// mostrar todo de una vez (o depender de scroll infinito dentro de la card).
+function Paginador({ paginaActual, totalPaginas, total, onCambiar }) {
+  if (totalPaginas <= 1) return null;
+
+  const inicio = (paginaActual - 1) * FILAS_POR_PAGINA + 1;
+  const fin = Math.min(paginaActual * FILAS_POR_PAGINA, total);
+
+  return (
+    <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
+      <p className="text-xs text-gray-400">
+        {inicio}–{fin} de {total}
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => onCambiar(paginaActual - 1)}
+          disabled={paginaActual === 1}
+          className="flex items-center justify-center w-7 h-7 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#1B2A4A] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="text-xs font-medium text-gray-500 px-2 whitespace-nowrap">
+          Página {paginaActual} de {totalPaginas}
+        </span>
+        <button
+          type="button"
+          onClick={() => onCambiar(paginaActual + 1)}
+          disabled={paginaActual === totalPaginas}
+          className="flex items-center justify-center w-7 h-7 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#1B2A4A] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function PanelControl() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,6 +162,7 @@ export default function PanelControl() {
   const [loadingUsuarios, setLoadingUsuarios] = useState(true);
   const [errorUsuarios, setErrorUsuarios] = useState('');
   const [filtroRol, setFiltroRol] = useState('');
+  const [paginaUsuarios, setPaginaUsuarios] = useState(1);
   const [modalUsuarioAbierto, setModalUsuarioAbierto] = useState(false);
   const [mensajeUsuarios, setMensajeUsuarios] = useState('');
   const [desactivandoId, setDesactivandoId] = useState(null);
@@ -130,6 +174,7 @@ export default function PanelControl() {
   const [loadingExpedientes, setLoadingExpedientes] = useState(true);
   const [errorExpedientes, setErrorExpedientes] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
+  const [paginaExpedientes, setPaginaExpedientes] = useState(1);
   const [modalExpedienteAbierto, setModalExpedienteAbierto] = useState(false);
   // Mensaje de éxito al volver de aprobar/solicitar subsanación en /revision/:id
   // (esa pantalla ya no tiene su propia bandeja a la que volver, así que el
@@ -183,10 +228,41 @@ export default function PanelControl() {
   }, [filtroEstado]);
 
   const usuariosFiltrados = filtroRol ? usuarios.filter((u) => u.rol === filtroRol) : usuarios;
+  const totalPaginasUsuarios = Math.max(1, Math.ceil(usuariosFiltrados.length / FILAS_POR_PAGINA));
+  const usuariosPagina = usuariosFiltrados.slice(
+    (paginaUsuarios - 1) * FILAS_POR_PAGINA,
+    paginaUsuarios * FILAS_POR_PAGINA
+  );
+  const totalPaginasExpedientes = Math.max(1, Math.ceil(expedientes.length / FILAS_POR_PAGINA));
+  const expedientesPagina = expedientes.slice(
+    (paginaExpedientes - 1) * FILAS_POR_PAGINA,
+    paginaExpedientes * FILAS_POR_PAGINA
+  );
+
+  // Si la lista se encoge (filtro, desactivar, etc.) y la página actual quedó
+  // fuera de rango, la regresa a la última página válida en vez de mostrar vacío.
+  useEffect(() => {
+    if (paginaUsuarios > totalPaginasUsuarios) setPaginaUsuarios(totalPaginasUsuarios);
+  }, [paginaUsuarios, totalPaginasUsuarios]);
+
+  useEffect(() => {
+    if (paginaExpedientes > totalPaginasExpedientes) setPaginaExpedientes(totalPaginasExpedientes);
+  }, [paginaExpedientes, totalPaginasExpedientes]);
+
+  function handleFiltroRolChange(valor) {
+    setFiltroRol(valor);
+    setPaginaUsuarios(1);
+  }
+
+  function handleFiltroEstadoChange(valor) {
+    setFiltroEstado(valor);
+    setPaginaExpedientes(1);
+  }
 
   function handleUsuarioCreado(usuario) {
     setModalUsuarioAbierto(false);
     setMensajeUsuarios(`Usuario "${usuario.nombre}" creado correctamente.`);
+    setPaginaUsuarios(1);
     cargarUsuarios();
   }
 
@@ -263,7 +339,7 @@ export default function PanelControl() {
 
           <div className="px-6 pt-5">
             <div className="w-56">
-              <SelectEstilizado value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}>
+              <SelectEstilizado value={filtroEstado} onChange={(e) => handleFiltroEstadoChange(e.target.value)}>
                 {OPCIONES_ESTADO_EXPEDIENTE.map((op) => (
                   <option key={op.value} value={op.value}>
                     {op.label}
@@ -304,7 +380,7 @@ export default function PanelControl() {
                     </tr>
                   </thead>
                   <tbody>
-                    {expedientes.map((exp) => (
+                    {expedientesPagina.map((exp) => (
                       <tr
                         key={exp.id}
                         onClick={() => navigate(`/revision/${exp.id}`)}
@@ -329,6 +405,12 @@ export default function PanelControl() {
                     ))}
                   </tbody>
                 </table>
+                <Paginador
+                  paginaActual={paginaExpedientes}
+                  totalPaginas={totalPaginasExpedientes}
+                  total={expedientes.length}
+                  onCambiar={setPaginaExpedientes}
+                />
               </div>
             )}
           </div>
@@ -347,7 +429,7 @@ export default function PanelControl() {
 
           <div className="px-6 pt-5">
             <div className="w-40">
-              <SelectEstilizado value={filtroRol} onChange={(e) => setFiltroRol(e.target.value)}>
+              <SelectEstilizado value={filtroRol} onChange={(e) => handleFiltroRolChange(e.target.value)}>
                 {OPCIONES_ROL.map((op) => (
                   <option key={op.value} value={op.value}>
                     {op.label}
@@ -420,7 +502,7 @@ export default function PanelControl() {
                     </tr>
                   </thead>
                   <tbody>
-                    {usuariosFiltrados.map((usuario) => (
+                    {usuariosPagina.map((usuario) => (
                       <tr key={usuario.id} className="border-t border-gray-100 hover:bg-[#1B2A4A]/[0.03] transition-colors">
                         <td className="py-3 px-2">
                           <span className="inline-flex items-center gap-2.5">
@@ -496,6 +578,12 @@ export default function PanelControl() {
                     ))}
                   </tbody>
                 </table>
+                <Paginador
+                  paginaActual={paginaUsuarios}
+                  totalPaginas={totalPaginasUsuarios}
+                  total={usuariosFiltrados.length}
+                  onCambiar={setPaginaUsuarios}
+                />
               </div>
             )}
           </div>
