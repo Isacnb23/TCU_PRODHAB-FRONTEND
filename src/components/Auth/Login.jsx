@@ -15,8 +15,8 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/expedientes', { replace: true });
+      const loggedUser = await login(email, password);
+      navigate(loggedUser?.rol === 'Admin' ? '/panel' : '/expedientes', { replace: true });
     } catch (err) {
       setError(err.message || 'Credenciales inválidas');
       setLoading(false);

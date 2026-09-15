@@ -8,6 +8,7 @@ import MisExpedientes from './components/Expedientes/MisExpedientes';
 import RevisionBandeja from './components/Revision/RevisionBandeja';
 import RevisionExpediente from './components/Revision/RevisionExpediente';
 import GestionUsuarios from './components/Usuarios/GestionUsuarios';
+import PanelControl from './components/Panel/PanelControl';
 import WizardPage from './pages/WizardPage';
 import './App.css';
 
@@ -56,6 +57,21 @@ function App() {
             <ProtectedRoute>
               <WizardPage />
             </ProtectedRoute>
+          }
+        />
+
+        {/* Panel de Control del Admin: landing post-login (protegida, solo Admin) */}
+        <Route
+          path="/panel"
+          element={
+            <AdminRoute>
+              <div className="h-screen flex flex-col bg-[#F7F3EA]">
+                <Header />
+                <main className="flex-1 overflow-y-auto bg-[#F1EBDD] p-8">
+                  <PanelControl />
+                </main>
+              </div>
+            </AdminRoute>
           }
         />
 

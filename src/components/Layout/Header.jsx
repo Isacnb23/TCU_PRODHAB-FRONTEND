@@ -21,6 +21,7 @@ export default function Header({ mostrarVolverExpedientes = false }) {
   // la etiqueta para que no suene a "mis" cuando su rol principal es revisar los ajenos.
   const etiquetaExpedientes = user?.rol === 'Admin' ? 'Expedientes' : 'Mis Expedientes';
 
+
   return (
     <header
       className="relative h-16 flex-shrink-0 border-b-2 border-[#C9A84C] shadow-md shadow-black/10"
@@ -51,6 +52,22 @@ export default function Header({ mostrarVolverExpedientes = false }) {
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               {etiquetaExpedientes}
+            </Link>
+          )}
+          {user?.rol === 'Admin' && (
+            <Link
+              to="/panel"
+              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 hover:bg-[#C9A84C]/10 transition-all duration-200"
+            >
+              Panel
+            </Link>
+          )}
+          {user?.rol === 'Admin' && (
+            <Link
+              to="/expedientes"
+              className="text-xs font-semibold text-[#C9A84C] border border-[#C9A84C]/40 rounded-lg px-3 py-1.5 hover:bg-[#C9A84C]/10 transition-all duration-200"
+            >
+              Expedientes
             </Link>
           )}
           {user?.rol === 'Admin' && (
