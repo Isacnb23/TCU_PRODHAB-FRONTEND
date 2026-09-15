@@ -325,6 +325,20 @@ export default function PanelControl() {
     navigate(`/expedientes/${id}`);
   }
 
+  // Si el expediente es propio (lo creó el mismo Admin logueado) y todavía está en un
+  // estado editable (Borrador o RequiereSubsanacion, los mismos que WizardPage deja
+  // editar), lleva al wizard para seguir llenándolo — igual que hace /expedientes.
+  // Si es de otro usuario, o ya no es editable, sigue yendo a la revisión de siempre.
+  function handleClickExpediente(exp) {
+    const esPropio = exp.usuarioId === user?.usuarioId;
+    const esEditable = exp.estado === 'Borrador' || exp.estado === 'RequiereSubsanacion';
+    if (esPropio && esEditable) {
+      navigate(`/expedientes/${exp.id}`);
+    } else {
+      navigate(`/revision/${exp.id}`);
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-7">
@@ -390,6 +404,7 @@ export default function PanelControl() {
                   <thead>
                     <tr className="text-[#1B2A4A]/60 text-[11px] uppercase tracking-wider">
                       <th className="text-left font-bold py-2.5 px-2">Entidad</th>
+                      <th className="text-left font-bold py-2.5 px-4">Creado por</th>
                       <th className="text-left font-bold py-2.5 px-4">Año</th>
                       <th className="text-left font-bold py-2.5 px-4">Estado</th>
                       <th className="text-left font-bold py-2.5 px-4">Últ. modificación</th>
@@ -405,11 +420,15 @@ export default function PanelControl() {
                       return (
                       <tr
                         key={exp.id}
-                        onClick={() => navigate(`/revision/${exp.id}`)}
+                        onClick={() => handleClickExpediente(exp)}
                         className="group border-t border-gray-100 hover:bg-[#1B2A4A]/[0.03] cursor-pointer transition-colors"
                       >
                         <td className="py-3 px-2 font-semibold text-gray-800 group-hover:text-[#1B2A4A] transition-colors">
                           {exp.entidad}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="text-gray-700 font-medium">{exp.usuarioNombre}</div>
+                          <div className="text-xs text-gray-400">{exp.usuarioEmail}</div>
                         </td>
                         <td className="py-3 px-4 text-gray-500">{exp.anio}</td>
                         <td className="py-3 px-4">
