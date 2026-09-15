@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import Header from './components/Layout/Header';
 import Login from './components/Auth/Login';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import AdminRoute from './components/Auth/AdminRoute';
+import InicioRedirect from './components/Auth/InicioRedirect';
 import MisExpedientes from './components/Expedientes/MisExpedientes';
 import RevisionBandeja from './components/Revision/RevisionBandeja';
 import RevisionExpediente from './components/Revision/RevisionExpediente';
@@ -118,9 +119,9 @@ function App() {
           }
         />
 
-        {/* Raíz y 404: siempre a la lista de expedientes */}
-        <Route path="/" element={<Navigate to="/expedientes" replace />} />
-        <Route path="*" element={<Navigate to="/expedientes" replace />} />
+        {/* Raíz y 404: Admin cae en su Panel, Usuario normal en Expedientes */}
+        <Route path="/" element={<InicioRedirect />} />
+        <Route path="*" element={<InicioRedirect />} />
       </Routes>
     </BrowserRouter>
   );

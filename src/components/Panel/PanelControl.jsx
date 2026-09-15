@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FolderOpen, AlertCircle, CheckCircle2, UserPlus, FilePlus2, KeyRound, Copy, Check, X, UserX } from 'lucide-react';
+import { Users, FolderOpen, AlertCircle, CheckCircle2, UserPlus, FilePlus2, KeyRound, Copy, Check, X, UserX, ShieldCheck } from 'lucide-react';
 import * as expedienteService from '../../services/expedienteService';
 import * as usuarioService from '../../services/usuarioService';
 import { useAuth } from '../../context/AuthContext';
@@ -254,11 +254,20 @@ export default function PanelControl() {
                   <tbody>
                     {usuariosFiltrados.map((usuario) => (
                       <tr key={usuario.id} className="border-t border-gray-100">
-                        <td className="py-2.5 font-medium text-gray-800">{usuario.nombre}</td>
-                        <td className="py-2.5 text-gray-600">{usuario.email}</td>
+                        <td className="py-2.5 font-medium text-gray-800 max-w-[110px] truncate" title={usuario.nombre}>
+                          <span className="inline-flex items-center gap-1">
+                            {usuario.esSuperAdmin && (
+                              <ShieldCheck className="w-3.5 h-3.5 text-[#C9A84C] flex-shrink-0" />
+                            )}
+                            {usuario.nombre}
+                          </span>
+                        </td>
+                        <td className="py-2.5 text-gray-600 max-w-[150px] truncate" title={usuario.email}>
+                          {usuario.email}
+                        </td>
                         <td className="py-2.5">
                           <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border ${
                               ROL_BADGE[usuario.rol] || 'bg-gray-100 text-gray-700 border-gray-300'
                             }`}
                           >
@@ -267,7 +276,7 @@ export default function PanelControl() {
                         </td>
                         <td className="py-2.5">
                           <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border ${
                               usuario.activo ? ESTADO_BADGE_USUARIO.activo : ESTADO_BADGE_USUARIO.inactivo
                             }`}
                           >
@@ -276,7 +285,7 @@ export default function PanelControl() {
                         </td>
                         <td className="py-2.5 text-right">
                           {usuario.activo ? (
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-1.5">
                               <button
                                 type="button"
                                 onClick={() => handleResetearPassword(usuario)}
@@ -286,15 +295,17 @@ export default function PanelControl() {
                               >
                                 <KeyRound className="w-3.5 h-3.5" />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDesactivar(usuario)}
-                                disabled={desactivandoId === usuario.id}
-                                title="Desactivar"
-                                className="p-1.5 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
-                              >
-                                <UserX className="w-3.5 h-3.5" />
-                              </button>
+                              {!usuario.esSuperAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDesactivar(usuario)}
+                                  disabled={desactivandoId === usuario.id}
+                                  title="Desactivar"
+                                  className="p-1.5 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                >
+                                  <UserX className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                             </div>
                           ) : (
                             <span className="text-xs text-gray-400">—</span>

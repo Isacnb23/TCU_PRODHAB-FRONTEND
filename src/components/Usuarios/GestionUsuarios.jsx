@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UserPlus, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import * as usuarioService from '../../services/usuarioService';
 import NuevoUsuarioModal from './NuevoUsuarioModal';
 
@@ -115,7 +115,14 @@ export default function GestionUsuarios() {
             <tbody>
               {usuarios.map((usuario) => (
                 <tr key={usuario.id} className="border-t border-gray-100">
-                  <td className="px-5 py-3 font-medium text-gray-800">{usuario.nombre}</td>
+                  <td className="px-5 py-3 font-medium text-gray-800">
+                    <span className="inline-flex items-center gap-1.5">
+                      {usuario.esSuperAdmin && (
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#C9A84C] flex-shrink-0" title="Superusuario" />
+                      )}
+                      {usuario.nombre}
+                    </span>
+                  </td>
                   <td className="px-5 py-3 text-gray-600">{usuario.email}</td>
                   <td className="px-5 py-3">
                     <span
@@ -137,7 +144,7 @@ export default function GestionUsuarios() {
                   </td>
                   <td className="px-5 py-3 text-gray-500">{formatFecha(usuario.fechaCreacion)}</td>
                   <td className="px-5 py-3 text-right">
-                    {usuario.activo ? (
+                    {usuario.activo && !usuario.esSuperAdmin ? (
                       <button
                         type="button"
                         onClick={() => handleDesactivar(usuario)}
